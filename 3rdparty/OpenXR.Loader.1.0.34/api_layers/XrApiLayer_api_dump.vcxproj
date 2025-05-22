@@ -1,0 +1,324 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C73D5352-19EE-31CF-A31F-F3912FD2AC04}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>XrApiLayer_api_dump</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XrApiLayer_api_dump.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">XrApiLayer_api_dump</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XrApiLayer_api_dump.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">XrApiLayer_api_dump</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.dll</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>E:\aaaPROJECT\Chapter3\openxr\src\common;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\..;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\..;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\.;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers;D:\VS2022\VulkanSDK\Include;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;XR_USE_GRAPHICS_API_OPENGL;XR_USE_GRAPHICS_API_VULKAN;XR_OS_WINDOWS;NOMINMAX;XR_USE_PLATFORM_WIN32;XR_USE_GRAPHICS_API_D3D11;XR_USE_GRAPHICS_API_D3D12;OPENXR_HAVE_COMMON_CONFIG;XR_USE_TIMESPEC;CMAKE_INTDIR="Debug";XrApiLayer_api_dump_EXPORTS</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;XR_USE_GRAPHICS_API_OPENGL;XR_USE_GRAPHICS_API_VULKAN;XR_OS_WINDOWS;NOMINMAX;XR_USE_PLATFORM_WIN32;XR_USE_GRAPHICS_API_D3D11;XR_USE_GRAPHICS_API_D3D12;OPENXR_HAVE_COMMON_CONFIG;XR_USE_TIMESPEC;CMAKE_INTDIR=\"Debug\";XrApiLayer_api_dump_EXPORTS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\aaaPROJECT\Chapter3\openxr\src\common;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\..;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\..;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\.;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers;D:\VS2022\VulkanSDK\Include;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>E:\aaaPROJECT\Chapter3\openxr\src\common;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\..;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\..;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\.;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers;D:\VS2022\VulkanSDK\Include;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>E:/aaaPROJECT/Chapter3/build2/_deps/openxr-build/src/api_layers/XrApiLayer_api_dump.lib</ImportLibrary>
+      <ModuleDefinitionFile>E:/aaaPROJECT/Chapter3/openxr/src/api_layers/XrApiLayer_api_dump.def</ModuleDefinitionFile>
+      <ProgramDataBaseFile>E:/aaaPROJECT/Chapter3/build2/_deps/openxr-build/src/api_layers/XrApiLayer_api_dump.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>E:\aaaPROJECT\Chapter3\openxr\src\common;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\..;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\..;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\.;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers;D:\VS2022\VulkanSDK\Include;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /bigobj</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;XR_USE_GRAPHICS_API_OPENGL;XR_USE_GRAPHICS_API_VULKAN;XR_OS_WINDOWS;NOMINMAX;XR_USE_PLATFORM_WIN32;XR_USE_GRAPHICS_API_D3D11;XR_USE_GRAPHICS_API_D3D12;OPENXR_HAVE_COMMON_CONFIG;XR_USE_TIMESPEC;CMAKE_INTDIR="Release";XrApiLayer_api_dump_EXPORTS</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;XR_USE_GRAPHICS_API_OPENGL;XR_USE_GRAPHICS_API_VULKAN;XR_OS_WINDOWS;NOMINMAX;XR_USE_PLATFORM_WIN32;XR_USE_GRAPHICS_API_D3D11;XR_USE_GRAPHICS_API_D3D12;OPENXR_HAVE_COMMON_CONFIG;XR_USE_TIMESPEC;CMAKE_INTDIR=\"Release\";XrApiLayer_api_dump_EXPORTS</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\aaaPROJECT\Chapter3\openxr\src\common;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\..;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\..;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\.;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers;D:\VS2022\VulkanSDK\Include;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>E:\aaaPROJECT\Chapter3\openxr\src\common;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\..;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\..;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\.;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers;D:\VS2022\VulkanSDK\Include;E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>E:/aaaPROJECT/Chapter3/build2/_deps/openxr-build/src/api_layers/XrApiLayer_api_dump.lib</ImportLibrary>
+      <ModuleDefinitionFile>E:/aaaPROJECT/Chapter3/openxr/src/api_layers/XrApiLayer_api_dump.def</ModuleDefinitionFile>
+      <ProgramDataBaseFile>E:/aaaPROJECT/Chapter3/build2/_deps/openxr-build/src/api_layers/XrApiLayer_api_dump.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="E:\aaaPROJECT\Chapter3\build2\CMakeFiles\d2d6362d29bb81306d5e48a3109f76a4\xr_generated_api_dump.hpp.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating xr_generated_api_dump.hpp using D:/anaconda/python.exe on api_dump_generator.py</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers
+if %errorlevel% neq 0 goto :cmEnd
+E:
+if %errorlevel% neq 0 goto :cmEnd
+D:\cmake\bin\cmake.exe -E env PYTHONPATH=E:/aaaPROJECT/Chapter3/openxr/specification/scripts";"E:/aaaPROJECT/Chapter3/openxr/src/scripts";" D:/anaconda/python.exe E:/aaaPROJECT/Chapter3/openxr/src/scripts/src_genxr.py -registry E:/aaaPROJECT/Chapter3/openxr/specification/registry/xr.xml xr_generated_api_dump.hpp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\aaaPROJECT\Chapter3\openxr\specification\registry\xr.xml;E:\aaaPROJECT\Chapter3\openxr\specification\scripts\generator.py;E:\aaaPROJECT\Chapter3\openxr\specification\scripts\reg.py;E:\aaaPROJECT\Chapter3\openxr\src\scripts\api_dump_generator.py;E:\aaaPROJECT\Chapter3\openxr\src\scripts\src_genxr.py;E:\aaaPROJECT\Chapter3\openxr\src\scripts\automatic_source_generator.py;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\xr_generated_api_dump.hpp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating xr_generated_api_dump.hpp using D:/anaconda/python.exe on api_dump_generator.py</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers
+if %errorlevel% neq 0 goto :cmEnd
+E:
+if %errorlevel% neq 0 goto :cmEnd
+D:\cmake\bin\cmake.exe -E env PYTHONPATH=E:/aaaPROJECT/Chapter3/openxr/specification/scripts";"E:/aaaPROJECT/Chapter3/openxr/src/scripts";" D:/anaconda/python.exe E:/aaaPROJECT/Chapter3/openxr/src/scripts/src_genxr.py -registry E:/aaaPROJECT/Chapter3/openxr/specification/registry/xr.xml xr_generated_api_dump.hpp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\aaaPROJECT\Chapter3\openxr\specification\registry\xr.xml;E:\aaaPROJECT\Chapter3\openxr\specification\scripts\generator.py;E:\aaaPROJECT\Chapter3\openxr\specification\scripts\reg.py;E:\aaaPROJECT\Chapter3\openxr\src\scripts\api_dump_generator.py;E:\aaaPROJECT\Chapter3\openxr\src\scripts\src_genxr.py;E:\aaaPROJECT\Chapter3\openxr\src\scripts\automatic_source_generator.py;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\xr_generated_api_dump.hpp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="E:\aaaPROJECT\Chapter3\build2\CMakeFiles\d2d6362d29bb81306d5e48a3109f76a4\xr_generated_api_dump.cpp.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating xr_generated_api_dump.cpp using D:/anaconda/python.exe on api_dump_generator.py</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers
+if %errorlevel% neq 0 goto :cmEnd
+E:
+if %errorlevel% neq 0 goto :cmEnd
+D:\cmake\bin\cmake.exe -E env PYTHONPATH=E:/aaaPROJECT/Chapter3/openxr/specification/scripts";"E:/aaaPROJECT/Chapter3/openxr/src/scripts";" D:/anaconda/python.exe E:/aaaPROJECT/Chapter3/openxr/src/scripts/src_genxr.py -registry E:/aaaPROJECT/Chapter3/openxr/specification/registry/xr.xml xr_generated_api_dump.cpp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\aaaPROJECT\Chapter3\openxr\specification\registry\xr.xml;E:\aaaPROJECT\Chapter3\openxr\specification\scripts\generator.py;E:\aaaPROJECT\Chapter3\openxr\specification\scripts\reg.py;E:\aaaPROJECT\Chapter3\openxr\src\scripts\api_dump_generator.py;E:\aaaPROJECT\Chapter3\openxr\src\scripts\src_genxr.py;E:\aaaPROJECT\Chapter3\openxr\src\scripts\automatic_source_generator.py;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\xr_generated_api_dump.cpp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating xr_generated_api_dump.cpp using D:/anaconda/python.exe on api_dump_generator.py</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers
+if %errorlevel% neq 0 goto :cmEnd
+E:
+if %errorlevel% neq 0 goto :cmEnd
+D:\cmake\bin\cmake.exe -E env PYTHONPATH=E:/aaaPROJECT/Chapter3/openxr/specification/scripts";"E:/aaaPROJECT/Chapter3/openxr/src/scripts";" D:/anaconda/python.exe E:/aaaPROJECT/Chapter3/openxr/src/scripts/src_genxr.py -registry E:/aaaPROJECT/Chapter3/openxr/specification/registry/xr.xml xr_generated_api_dump.cpp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\aaaPROJECT\Chapter3\openxr\specification\registry\xr.xml;E:\aaaPROJECT\Chapter3\openxr\specification\scripts\generator.py;E:\aaaPROJECT\Chapter3\openxr\specification\scripts\reg.py;E:\aaaPROJECT\Chapter3\openxr\src\scripts\api_dump_generator.py;E:\aaaPROJECT\Chapter3\openxr\src\scripts\src_genxr.py;E:\aaaPROJECT\Chapter3\openxr\src\scripts\automatic_source_generator.py;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\xr_generated_api_dump.cpp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="E:\aaaPROJECT\Chapter3\build2\CMakeFiles\d2d6362d29bb81306d5e48a3109f76a4\XrApiLayer_api_dump.json.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating API Layer JSON E:/aaaPROJECT/Chapter3/build2/_deps/openxr-build/src/api_layers/XrApiLayer_api_dump.json using -f E:/aaaPROJECT/Chapter3/build2/_deps/openxr-build/src/api_layers/XrApiLayer_api_dump.json -n LUNARG_api_dump -l ./XrApiLayer_api_dump.dll -a 1.0 -v 1  -d API Layer to record api calls as they occur</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers
+if %errorlevel% neq 0 goto :cmEnd
+E:
+if %errorlevel% neq 0 goto :cmEnd
+D:\cmake\bin\cmake.exe -E env PYTHONPATH=E:/aaaPROJECT/Chapter3/openxr/specification/scripts";"E:/aaaPROJECT/Chapter3/openxr/src/scripts";" D:/anaconda/python.exe E:/aaaPROJECT/Chapter3/openxr/src/scripts/generate_api_layer_manifest.py -f E:/aaaPROJECT/Chapter3/build2/_deps/openxr-build/src/api_layers/XrApiLayer_api_dump.json -n LUNARG_api_dump -l ./XrApiLayer_api_dump.dll -a 1.0 -v 1 -d "API Layer to record api calls as they occur"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\aaaPROJECT\Chapter3\openxr\src\scripts\generate_api_layer_manifest.py;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\XrApiLayer_api_dump.json</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating API Layer JSON E:/aaaPROJECT/Chapter3/build2/_deps/openxr-build/src/api_layers/XrApiLayer_api_dump.json using -f E:/aaaPROJECT/Chapter3/build2/_deps/openxr-build/src/api_layers/XrApiLayer_api_dump.json -n LUNARG_api_dump -l ./XrApiLayer_api_dump.dll -a 1.0 -v 1  -d API Layer to record api calls as they occur</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers
+if %errorlevel% neq 0 goto :cmEnd
+E:
+if %errorlevel% neq 0 goto :cmEnd
+D:\cmake\bin\cmake.exe -E env PYTHONPATH=E:/aaaPROJECT/Chapter3/openxr/specification/scripts";"E:/aaaPROJECT/Chapter3/openxr/src/scripts";" D:/anaconda/python.exe E:/aaaPROJECT/Chapter3/openxr/src/scripts/generate_api_layer_manifest.py -f E:/aaaPROJECT/Chapter3/build2/_deps/openxr-build/src/api_layers/XrApiLayer_api_dump.json -n LUNARG_api_dump -l ./XrApiLayer_api_dump.dll -a 1.0 -v 1 -d "API Layer to record api calls as they occur"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\aaaPROJECT\Chapter3\openxr\src\scripts\generate_api_layer_manifest.py;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\XrApiLayer_api_dump.json</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="E:\aaaPROJECT\Chapter3\openxr\src\api_layers\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule E:/aaaPROJECT/Chapter3/openxr/src/api_layers/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+D:\cmake\bin\cmake.exe -SE:/aaaPROJECT/Chapter3 -BE:/aaaPROJECT/Chapter3/build2 --check-stamp-file E:/aaaPROJECT/Chapter3/build2/_deps/openxr-build/src/api_layers/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\aaaPROJECT\Chapter3\build2\CMakeFiles\cmake.verify_globs;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\api_layer_platform_defines.h;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule E:/aaaPROJECT/Chapter3/openxr/src/api_layers/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+D:\cmake\bin\cmake.exe -SE:/aaaPROJECT/Chapter3 -BE:/aaaPROJECT/Chapter3/build2 --check-stamp-file E:/aaaPROJECT/Chapter3/build2/_deps/openxr-build/src/api_layers/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\aaaPROJECT\Chapter3\build2\CMakeFiles\cmake.verify_globs;E:\aaaPROJECT\Chapter3\openxr\src\api_layers\api_layer_platform_defines.h;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="E:\aaaPROJECT\Chapter3\openxr\src\api_layers\api_dump.cpp" />
+    <ClInclude Include="E:\aaaPROJECT\Chapter3\openxr\src\common\hex_and_handles.h" />
+    <ClInclude Include="E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\xr_generated_api_dump.hpp" />
+    <ClCompile Include="E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\xr_generated_api_dump.cpp" />
+    <ClInclude Include="E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\xr_generated_dispatch_table.h" />
+    <ClCompile Include="E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\xr_generated_dispatch_table.c" />
+    <None Include="E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\XrApiLayer_api_dump.json">
+    </None>
+    <None Include="E:\aaaPROJECT\Chapter3\openxr\src\api_layers\XrApiLayer_api_dump.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="E:\aaaPROJECT\Chapter3\build2\ZERO_CHECK.vcxproj">
+      <Project>{DB6CC05C-9263-3F8C-BA78-FD00ABF6891F}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\include\openxr\generate_openxr_header.vcxproj">
+      <Project>{078563BE-A2AB-397B-975F-562BC22EB238}</Project>
+      <Name>generate_openxr_header</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\xr_common_generated_files.vcxproj">
+      <Project>{B18DD52C-F921-39CD-8336-A959FC1CF993}</Project>
+      <Name>xr_common_generated_files</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

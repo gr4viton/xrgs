@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="E:\aaaPROJECT\Chapter3\openxr\src\api_layers\api_dump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\xr_generated_api_dump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\xr_generated_dispatch_table.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="E:\aaaPROJECT\Chapter3\openxr\src\common\hex_and_handles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\xr_generated_api_dump.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\xr_generated_dispatch_table.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="E:\aaaPROJECT\Chapter3\build2\CMakeFiles\d2d6362d29bb81306d5e48a3109f76a4\xr_generated_api_dump.hpp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\aaaPROJECT\Chapter3\build2\CMakeFiles\d2d6362d29bb81306d5e48a3109f76a4\xr_generated_api_dump.cpp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\aaaPROJECT\Chapter3\build2\CMakeFiles\d2d6362d29bb81306d5e48a3109f76a4\XrApiLayer_api_dump.json.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="E:\aaaPROJECT\Chapter3\openxr\src\api_layers\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="E:\aaaPROJECT\Chapter3\build2\_deps\openxr-build\src\api_layers\XrApiLayer_api_dump.json" />
+    <None Include="E:\aaaPROJECT\Chapter3\openxr\src\api_layers\XrApiLayer_api_dump.def">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{FC0AD29F-12F8-3E25-A629-892A2DFCF4C4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{7E8CFC24-9B57-324E-8ABF-0B26EB315B77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{E0B6AE02-E14F-302C-9964-14D284D85B56}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

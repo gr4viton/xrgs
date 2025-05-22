@@ -1,0 +1,10 @@
+bin_x64/
+build/
+_install/
+_autogen/
+_benchmark/
+generated/
+out
+doc
+downloaded_resources
+.vs
