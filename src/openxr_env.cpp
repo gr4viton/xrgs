@@ -6,6 +6,7 @@
 #include "openxr_env.h"
 #include <Common/GraphicsAPI.h>
 #include <OpenXRHelper.h>
+#include "gaussian_splatting.h"
 
 XrVector3f operator-(XrVector3f a, XrVector3f b) {
     return {a.x - b.x, a.y - b.y, a.z - b.z};
@@ -525,7 +526,7 @@ void OpenXREnv::EndFrame(RenderLayerInfo& renderLayerInfo)
 void OpenXREnv::RenderFrame(RenderLayerInfo& renderLayerInfo)
 {
 }
-bool OpenXREnv::RenderLayer(RenderLayerInfo& renderLayerInfo, VkCommandBuffer cmd)
+bool OpenXREnv::RenderLayer(RenderLayerInfo& renderLayerInfo, VkCommandBuffer cmd, std::shared_ptr<GaussianSplatting> gsRenderer)
 {
     // Locate the views from the view configuration within the (reference) space at the display time.
     std::vector<XrView> views(m_viewConfigurationViews.size(), {XR_TYPE_VIEW});
@@ -547,7 +548,6 @@ bool OpenXREnv::RenderLayer(RenderLayerInfo& renderLayerInfo, VkCommandBuffer cm
     // Per view in the view configuration:
     for(uint32_t i = 0; i < viewCount; i++)
     {
-        views[i].pose.position = XrVector3f(5, 0, -5);
         SwapchainInfo& colorSwapchainInfo = m_colorSwapchainInfos[i];
         // Acquire and wait for an image from the swapchains.
         // Get the image index of an image in the swapchains.
@@ -558,9 +558,7 @@ bool OpenXREnv::RenderLayer(RenderLayerInfo& renderLayerInfo, VkCommandBuffer cm
         XrSwapchainImageWaitInfo waitInfo = {XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
         waitInfo.timeout                  = XR_INFINITE_DURATION;
         OPENXR_CHECK(xrWaitSwapchainImage(colorSwapchainInfo.swapchain, &waitInfo), "Failed to wait for Image from the Color Swapchain");
-    }
-    for(uint32_t i = 0; i < viewCount; i++) {
-        SwapchainInfo& colorSwapchainInfo = m_colorSwapchainInfos[i];
+
         // Get the width and height and construct the viewport and scissors.
         const uint32_t& width    = m_viewConfigurationViews[i].recommendedImageRectWidth;
         const uint32_t& height   = m_viewConfigurationViews[i].recommendedImageRectHeight;
@@ -588,7 +586,8 @@ bool OpenXREnv::RenderLayer(RenderLayerInfo& renderLayerInfo, VkCommandBuffer cm
         cameraConstants.pos = views[i].pose.position;
         cameraConstants.viewport = {(int)width, (int)height};
         // record render cmd
-        //m_graphicsAPI->RenderingInXR(cmd, i);
+        gsRenderer->renderView(cmd, colorSwapchainInfo.imageViews[colorImageIndex[i]], (void*)&cameraConstants,
+                               i == 1 ? m_graphicsAPI->GetSwapchainImage(colorSwapchainInfo.swapchain, colorImageIndex[i]) : nullptr);
     }
     return true;
 }

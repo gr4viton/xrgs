@@ -181,6 +181,10 @@ public:
           RenderLayerInfo renderLayerInfo;
           if(xrEnv->BeginFrame(renderLayerInfo))
           {
+            if(xrEnv->RenderLayer(renderLayerInfo, cmd, gaussianSplatting))
+            {
+              renderLayerInfo.layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&renderLayerInfo.layerProjection));
+            }
           }
           app->drawFrame(cmd);
           app->endFrame(cmd);   // submit before release swapchain image

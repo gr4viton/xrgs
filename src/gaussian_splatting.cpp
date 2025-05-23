@@ -25,6 +25,7 @@
 
 #include <nvh/misc.hpp>
 #include <glm/gtc/packing.hpp>  // Required for half-float operations
+#include "openxr_env.h"
 
 GaussianSplatting::GaussianSplatting(std::shared_ptr<nvvkhl::ElementProfiler>            profiler,
                                      std::shared_ptr<nvvkhl::ElementBenchmarkParameters> benchmark)
@@ -194,6 +195,117 @@ void GaussianSplatting::renderXR(VkCommandBuffer cmd) {
     // nothing to do here
 }
 
+void GaussianSplatting::renderView(VkCommandBuffer cmd, void* view, void* camera, void* image) {
+  if(!m_gBuffers)
+    return;
+
+  //const nvvk::DebugUtil::ScopedCmdLabel sdbg = m_dutil->DBG_SCOPE(cmd);
+
+  // collect readback results from previous frame if any
+  collectReadBackValuesIfNeeded();
+
+  // 0 if not ready so the rendering does not
+  // touch the splat set while loading
+  uint32_t splatCount = 0;
+  if(m_plyLoader.getStatus() == PlyAsyncLoader::State::E_READY)
+  {
+    splatCount = (uint32_t)m_splatSet.size();
+  }
+
+  // Handle device-host data update and sorting if a scene exist
+  if(splatCount)
+  {
+    updateAndUploadFrameInfoUBO(cmd, splatCount, camera);
+
+    if(m_frameInfo.sortingMethod == SORTING_GPU_SYNC_RADIX)
+    {
+      // resets CPU sorting time info
+      m_distTime = m_sortTime = 0.0;
+
+      processSortingOnGPU(cmd, splatCount);
+    }
+    else
+    {
+      tryConsumeAndUploadCpuSortingResult(cmd, splatCount);
+    }
+  }
+  // Drawing the primitives in the G-Buffer if any
+  CameraConstants* cameraXR = (CameraConstants*)camera;
+  VkExtent2D       extent   = {(uint32_t)cameraXR->viewport.width, (uint32_t)cameraXR->viewport.height};
+  {
+    auto timerSection = m_profiler->timeRecurring("Rendering", cmd);
+    
+    nvvk::createRenderingInfo r_info({{0, 0}, extent}, {(VkImageView)view}, nullptr, VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                     VK_ATTACHMENT_LOAD_OP_CLEAR, m_clearColor);
+    r_info.pStencilAttachment = nullptr;
+    r_info.pDepthAttachment   = nullptr;
+
+    vkCmdBeginRendering(cmd, &r_info);
+    VkViewport viewport{0.0F, 0.0F, static_cast<float>(extent.width), static_cast<float>(extent.height), 0.0F, 1.0F};
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+    VkRect2D scissor{{0, 0}, extent};
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
+    if(splatCount)
+    {
+      // let's throw some pixels !!
+      drawSplatPrimitives(cmd, splatCount);
+    }
+
+    vkCmdEndRendering(cmd);
+  }
+  if(image) // let's blit image
+  {
+    nvvk::cmdBarrierImageLayout(cmd, m_gBuffers->getColorImage(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    nvvk::cmdBarrierImageLayout(cmd, (VkImage)image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+    const glm::vec2   sourceResolution  = {static_cast<float>(extent.width), static_cast<float>(extent.height)};
+    const float      sourceAspectRatio = sourceResolution.x / sourceResolution.y;
+    const VkExtent2D gResolution          = m_gBuffers->getSize();
+    const glm::vec2 destinationResolution = {static_cast<float>(gResolution.width), static_cast<float>(gResolution.height)};
+    const float     destinationAspectRatio = destinationResolution.x / destinationResolution.y;
+    glm::vec2       cropResolution = sourceResolution, cropOffset = {0.0f, 0.0f};
+
+    if(sourceAspectRatio < destinationAspectRatio)
+    {
+      cropResolution.y = sourceResolution.x / destinationAspectRatio;
+      cropOffset.y     = (sourceResolution.y - cropResolution.y) / 2.0f;
+    }
+    else if(sourceAspectRatio > destinationAspectRatio)
+    {
+      cropResolution.x = sourceResolution.y * destinationAspectRatio;
+      cropOffset.x     = (sourceResolution.x - cropResolution.x) / 2.0f;
+    }
+
+    // Blit the source to the destination image
+    VkImageBlit imageBlit{};
+    imageBlit.srcOffsets[0]             = {static_cast<int32_t>(cropOffset.x), static_cast<int32_t>(cropOffset.y), 0};
+    imageBlit.srcOffsets[1]             = {static_cast<int32_t>(cropOffset.x + cropResolution.x),
+                                           static_cast<int32_t>(cropOffset.y + cropResolution.y), 1};
+    imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageBlit.srcSubresource.mipLevel   = 0u;
+    imageBlit.srcSubresource.baseArrayLayer = 0u;
+    imageBlit.srcSubresource.layerCount     = 1u;
+
+    imageBlit.dstOffsets[0] = {0, 0, 0};
+    imageBlit.dstOffsets[1] = {static_cast<int32_t>(destinationResolution.x), static_cast<int32_t>(destinationResolution.y), 1};
+    imageBlit.dstSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageBlit.dstSubresource.mipLevel       = 0u;
+    imageBlit.dstSubresource.baseArrayLayer = 0u;
+    imageBlit.dstSubresource.layerCount     = 1u;
+
+    vkCmdBlitImage(cmd, (VkImage)image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_gBuffers->getColorImage(),
+                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1u, &imageBlit, VK_FILTER_NEAREST);
+
+    nvvk::cmdBarrierImageLayout(cmd, m_gBuffers->getColorImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+    nvvk::cmdBarrierImageLayout(cmd, (VkImage)image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  }
+
+  readBackIndirectParametersIfNeeded(cmd);
+
+  updateRenderingMemoryStatistics(cmd, splatCount);
+}
+
 void GaussianSplatting::onRender(VkCommandBuffer cmd)
 {
   switch(m_mode)
@@ -210,31 +322,43 @@ void GaussianSplatting::onRender(VkCommandBuffer cmd)
   
 }
 
-void GaussianSplatting::updateAndUploadFrameInfoUBO(VkCommandBuffer cmd, const uint32_t splatCount)
+void GaussianSplatting::updateAndUploadFrameInfoUBO(VkCommandBuffer cmd, const uint32_t splatCount, const void* data)
 {
-  auto timerSection = m_profiler->timeRecurring("UBO update", cmd);
+  // auto timerSection = m_profiler->timeRecurring("UBO update", cmd);
+  CameraConstants* cameraXR    = (CameraConstants*)data;
+  auto             screen_size = data ? glm::vec2((float)cameraXR->viewport.width, (float)cameraXR->viewport.height) :
+                                        glm::vec2(m_viewSize.x, m_viewSize.y);
+  const float      aspectRatio = screen_size.x / screen_size.y;
+  if(data)
+  {
+    memcpy(&m_frameInfo, data, 16 * 4 * 2 + 4 * 3);  // proj view pos
+    glm::mat4 matrix        = glm::mat4(1.0f);
+    glm::mat4 rotatedMatrix = glm::rotate(matrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    m_frameInfo.viewMatrix  = rotatedMatrix * m_frameInfo.viewMatrix;
+  }
+  else
+  {
+    CameraManip.getLookat(m_eye, m_center, m_up);
+    // Update frame parameters uniform buffer
+    // some attributes of frameInfo were set by the user interface
+    const glm::vec2& clip  = CameraManip.getClipPlanes();
+    m_frameInfo.viewMatrix = CameraManip.getMatrix();
+    m_frameInfo.projectionMatrix = glm::perspectiveRH_ZO(glm::radians(CameraManip.getFov()), aspectRatio, clip.x, clip.y);
+    // OpenGL (0,0) is bottom left, Vulkan (0,0) is top left, and glm::perspectiveRH_ZO is for OpenGL so we mirror on y
+    m_frameInfo.projectionMatrix[1][1] *= -1;
+    m_frameInfo.cameraPosition = m_eye;
+  }
 
-  CameraManip.getLookat(m_eye, m_center, m_up);
-
-  // Update frame parameters uniform buffer
-  // some attributes of frameInfo were set by the user interface
-  const float      aspectRatio = m_viewSize.x / m_viewSize.y;
-  const glm::vec2& clip        = CameraManip.getClipPlanes();
-  m_frameInfo.splatCount       = splatCount;
-  m_frameInfo.viewMatrix       = CameraManip.getMatrix();
-  m_frameInfo.projectionMatrix = glm::perspectiveRH_ZO(glm::radians(CameraManip.getFov()), aspectRatio, clip.x, clip.y);
-  // OpenGL (0,0) is bottom left, Vulkan (0,0) is top left, and glm::perspectiveRH_ZO is for OpenGL so we mirror on y
-  m_frameInfo.projectionMatrix[1][1] *= -1;
-  m_frameInfo.cameraPosition         = m_eye;
   float       devicePixelRatio       = 1.0;
-  const float focalLengthX           = m_frameInfo.projectionMatrix[0][0] * 0.5f * devicePixelRatio * m_viewSize.x;
-  const float focalLengthY           = m_frameInfo.projectionMatrix[1][1] * 0.5f * devicePixelRatio * m_viewSize.y;
+  const float focalLengthX           = m_frameInfo.projectionMatrix[0][0] * 0.5f * devicePixelRatio * screen_size.x;
+  const float focalLengthY           = m_frameInfo.projectionMatrix[1][1] * 0.5f * devicePixelRatio * screen_size.y;
   const bool  isOrthographicCamera   = false;
   const float focalMultiplier        = isOrthographicCamera ? (1.0f / devicePixelRatio) : 1.0f;
   const float focalAdjustment        = focalMultiplier;  //  this.focalAdjustment* focalMultiplier;
+  m_frameInfo.splatCount             = splatCount;
   m_frameInfo.orthoZoom              = 1.0f;
   m_frameInfo.orthographicMode       = 0;  // disabled (uses perspective) TODO: activate support for orthographic
-  m_frameInfo.basisViewport          = glm::vec2(1.0f / m_viewSize.x, 1.0f / m_viewSize.y);
+  m_frameInfo.basisViewport          = glm::vec2(1.0f / screen_size.x, 1.0f / screen_size.y);
   m_frameInfo.focal                  = glm::vec2(focalLengthX, focalLengthY);
   m_frameInfo.inverseFocalAdjustment = 1.0f / focalAdjustment;
 

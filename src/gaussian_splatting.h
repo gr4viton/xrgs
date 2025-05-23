@@ -100,6 +100,7 @@ public:  // Methods specializing IAppElement
   void onResize(VkCommandBuffer cmd, const VkExtent2D& size) override;
 
   void onRender(VkCommandBuffer cmd) override;
+  void renderView(VkCommandBuffer cmd, void* view, void* camera, void* image = nullptr);
   
   Mode m_mode = Mode::PC;
 
@@ -201,7 +202,7 @@ private:  // Methods
   // Rendering submethods
 
   // Updates frame information uniform buffer and frame camera info
-  void updateAndUploadFrameInfoUBO(VkCommandBuffer cmd, const uint32_t splatCount);
+  void updateAndUploadFrameInfoUBO(VkCommandBuffer cmd, const uint32_t splatCount, const void* data = nullptr);
 
   void tryConsumeAndUploadCpuSortingResult(VkCommandBuffer cmd, const uint32_t splatCount);
 
@@ -318,7 +319,7 @@ private:  // Attributes
   nvvk::Buffer m_sphericalHarmonicsDevice;
 
   // rasterization pipeline selector
-  uint32_t m_selectedPipeline = PIPELINE_MESH;
+  uint32_t m_selectedPipeline = PIPELINE_VERT;
 
   // CPU async sorting
   SplatSorterAsync      m_cpuSorter;

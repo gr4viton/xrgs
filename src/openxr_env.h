@@ -7,6 +7,7 @@
 #include <xr_linear_algebra.h>
 
 class MyApp;
+class GaussianSplatting;
 
 struct RenderLayerInfo
 {
@@ -52,7 +53,7 @@ public:
   void DestroyDebugMessenger();
   XrResult DestroyInstance();
 
-  bool RenderLayer(RenderLayerInfo& renderLayerInfo, VkCommandBuffer cmd);
+  bool RenderLayer(RenderLayerInfo& renderLayerInfo, VkCommandBuffer cmd, std::shared_ptr<GaussianSplatting> gsRenderer);
   void RenderFrame(RenderLayerInfo& renderLayerInfo);
   bool BeginFrame(RenderLayerInfo& renderLayerInfo);
   void EndFrame(RenderLayerInfo& renderLayerInfo);

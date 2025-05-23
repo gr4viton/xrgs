@@ -269,6 +269,9 @@ XrResult GraphicsAPI_Vulkan::init(XrInstance m_xrInstance, XrSystemId systemId)
     VULKAN_CHECK(vkCreateDevice(physicalDevice, &deviceCI, nullptr, &device), "Failed to create Device.");
 
     vkGetDeviceQueue(device, queueFamilyIndex, queueIndex, &queue);
+
+    nvvk::DebugUtil debugUtil(device);
+    debugUtil.setObjectName(queue, "queueGTC");
 }
 
 GraphicsAPI_Vulkan::~GraphicsAPI_Vulkan() {
