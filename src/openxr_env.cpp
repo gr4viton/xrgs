@@ -376,7 +376,7 @@ XrResult OpenXREnv::CreateReferenceSpace()
     // Fill out an XrReferenceSpaceCreateInfo structure and create a reference XrSpace, specifying a Local space with an identity pose as the origin.
     XrReferenceSpaceCreateInfo referenceSpaceCI{XR_TYPE_REFERENCE_SPACE_CREATE_INFO};
     referenceSpaceCI.referenceSpaceType = m_refSpace;
-    referenceSpaceCI.poseInReferenceSpace = {{0.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}};
+    referenceSpaceCI.poseInReferenceSpace = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -2.0f}};
     OPENXR_LOG(xrCreateReferenceSpace(m_session, &referenceSpaceCI, &m_localSpace), "Failed to create ReferenceSpace.");
     std::cout << "Using Reference space: " << (m_refSpace == 2 ? "local" : "other") << '\n';
     return XR_SUCCESS;
