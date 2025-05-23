@@ -35,11 +35,6 @@
 class AppCtrl
 {
 public:
-  enum Mode
-  {
-    PC,
-    XR,
-  };
   std::unique_ptr<nvvkhl::Application> app = nullptr;
   std::shared_ptr<GraphicsAPI_Vulkan> graphicsAPI = nullptr;
 
@@ -115,6 +110,7 @@ public:
     app->addElement(std::make_shared<nvvkhl::ElementNvml>());
     //
     gaussianSplatting->registerRecentFilesHandler();
+    gaussianSplatting->m_mode = Mode::PC;
     app->run();
     ifSwitchMode = app->ifSwitchMode();
     app.reset();
@@ -171,11 +167,35 @@ public:
     app->addElement(std::make_shared<nvvkhl::ElementNvml>());
     //
     gaussianSplatting->registerRecentFilesHandler();
-    app->run();
+    gaussianSplatting->m_mode = Mode::XR;
+
+    std::function<void(nvvkhl::Application*)> renderFunc = [xrEnv, gaussianSplatting](nvvkhl::Application* app) {
+      xrEnv->PollEvents();
+      if(!xrEnv->AppRunning())
+      {
+        app->close();
+      }
+      VkCommandBuffer cmd = app->beginFrame();
+      if(cmd != nullptr && xrEnv->SessionRunning())
+      {
+          RenderLayerInfo renderLayerInfo;
+          if(xrEnv->BeginFrame(renderLayerInfo))
+          {
+          }
+          app->drawFrame(cmd);
+          app->endFrame(cmd);   // submit before release swapchain image
+          app->presentFrame();
+          xrEnv->EndFrame(renderLayerInfo);
+      }
+    };
+
+    app->runXR(renderFunc);
     ifSwitchMode = app->ifSwitchMode();
     app.reset();
+    renderFunc = nullptr;
     gaussianSplatting.reset();  // this module used vmaAllocator which is corresponded with vk objects, so deconstruct before graphicsAPI
     profiler.reset();
+    xrEnv.reset();
     graphicsAPI.reset();
   }
 };

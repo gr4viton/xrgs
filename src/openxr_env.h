@@ -1,3 +1,5 @@
+#pragma once
+
 #include <DebugOutput.h>
 #include <GraphicsAPI_Vulkan.h>
 #include <OpenXRDebugUtils.h>

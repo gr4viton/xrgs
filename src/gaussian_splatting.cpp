@@ -128,10 +128,7 @@ void GaussianSplatting::deinitGbuffers()
 {
   m_gBuffers.reset();
 }
-
-void GaussianSplatting::onRender(VkCommandBuffer cmd)
-{
-
+void GaussianSplatting::renderPC(VkCommandBuffer cmd) {
   if(!m_gBuffers)
     return;
 
@@ -191,6 +188,26 @@ void GaussianSplatting::onRender(VkCommandBuffer cmd)
   readBackIndirectParametersIfNeeded(cmd);
 
   updateRenderingMemoryStatistics(cmd, splatCount);
+}
+
+void GaussianSplatting::renderXR(VkCommandBuffer cmd) {
+    // nothing to do here
+}
+
+void GaussianSplatting::onRender(VkCommandBuffer cmd)
+{
+  switch(m_mode)
+  {
+    case PC:
+      renderPC(cmd);
+      break;
+    case XR:
+      renderXR(cmd);
+      break;
+    default:
+      break;
+  }
+  
 }
 
 void GaussianSplatting::updateAndUploadFrameInfoUBO(VkCommandBuffer cmd, const uint32_t splatCount)

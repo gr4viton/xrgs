@@ -26,9 +26,9 @@ OpenXREnv::OpenXREnv(GraphicsAPI_Type apiType)
 
 OpenXREnv::~OpenXREnv()
 {
-    m_graphicsAPI = nullptr;
     std::cout << "Destroying OpenXR\n";
     Destroy();
+    m_graphicsAPI = nullptr;
 }
 
 bool OpenXREnv::SessionRunning() const {

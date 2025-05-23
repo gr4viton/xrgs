@@ -167,6 +167,7 @@ public:
 
   // Application control
   void run();    // Run indefinitely until close is requested
+  void runXR(std::function<void(nvvkhl::Application* app)> func);  // Run indefinitely until close is requested
   void close();  // Stopping the application
 
   // Adding engines
@@ -233,6 +234,10 @@ public:
                        const std::string& filename,
                        int                quality = 90);
 
+  VkCommandBuffer beginFrame();
+  void            drawFrame(VkCommandBuffer cmd);
+  void            endFrame(VkCommandBuffer cmd);
+  void            presentFrame();
 
 private:
   void            init(ApplicationCreateInfo& info);
@@ -244,10 +249,7 @@ private:
   void            createDescriptorPool();
   void            onViewportSizeChange(VkExtent2D size);
   void            headlessRun();
-  VkCommandBuffer beginFrame();
-  void            drawFrame(VkCommandBuffer cmd);
-  void            endFrame(VkCommandBuffer cmd);
-  void            presentFrame();
+
   void            beginDynamicRenderingToSwapchain(VkCommandBuffer cmd) const;
   void            endDynamicRenderingToSwapchain(VkCommandBuffer cmd);
   void            saveScreenShot(const std::string& filename, int quality);  // Immediately save the frame

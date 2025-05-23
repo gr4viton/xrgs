@@ -361,6 +361,109 @@ void nvvkhl::Application::run()
   }
 }
 
+void nvvkhl::Application::runXR(std::function<void(nvvkhl::Application* app)> func)
+{
+  if(m_headless)
+  {
+    headlessRun();
+    return;
+  }
+
+  ImGui::LoadIniSettingsFromDisk(m_iniFilename.c_str());
+  if(isWindowPosValid(m_windowHandle, m_winPos.x, m_winPos.y))
+  {
+    // Position must be set before size to take into account DPI
+    glfwSetWindowPos(m_windowHandle, m_winPos.x, m_winPos.y);
+  }
+  if(m_winSize != glm::ivec2(0, 0))
+  {
+    m_windowSize = {uint32_t(m_winSize.x), uint32_t(m_winSize.y)};
+    glfwSetWindowSize(m_windowHandle, m_winSize.x, m_winSize.y);
+    m_swapchain.requestRebuild();
+  }
+
+  // Main rendering loop
+  while(!glfwWindowShouldClose(m_windowHandle))
+  {
+    glfwPollEvents();
+    if(glfwGetWindowAttrib(m_windowHandle, GLFW_ICONIFIED) == GLFW_TRUE)
+    {
+      ImGui_ImplGlfw_Sleep(10);  // Do nothing when minimized
+      continue;
+    }
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    // IMGUI Docking
+    // Create a dockspace and dock the viewport and settings window.
+    // The central node is named "Viewport", which can be used later with Begin("Viewport")  to render the final image.
+    const ImGuiDockNodeFlags dockFlags = ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoDockingInCentralNode;
+    ImGuiID dockID = ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), dockFlags);
+    // Docking layout, must be done only if it doesn't exist
+    if(!ImGui::DockBuilderGetNode(dockID)->IsSplitNode() && !ImGui::FindWindowByName("Viewport"))
+    {
+      ImGui::DockBuilderDockWindow("Viewport", dockID);  // Dock "Viewport" to  central node
+      ImGui::DockBuilderGetCentralNode(dockID)->LocalFlags |= ImGuiDockNodeFlags_NoTabBar;  // Remove "Tab" from the central node
+      if(m_dockSetup)
+      {
+        // This override allow to create the layout of windows by default.
+        m_dockSetup(dockID);
+      }
+      else
+      {
+        ImGuiID leftID = ImGui::DockBuilderSplitNode(dockID, ImGuiDir_Left, 0.2f, nullptr, &dockID);  // Split the central node
+        ImGui::DockBuilderDockWindow("Settings", leftID);  // Dock "Settings" to the left node
+      }
+    }
+
+    // [optional] Show the menu bar : File, Edit, etc.
+    if(m_useMenubar && ImGui::BeginMainMenuBar())
+    {
+      for(std::shared_ptr<IAppElement>& e : m_elements)
+      {
+        e->onUIMenu();
+      }
+      ImGui::EndMainMenuBar();
+    }
+
+    // We define the window "Viewport" with no padding an retrieve the rendering area
+    VkExtent2D         viewportSize = m_windowSize;
+    const ImGuiWindow* viewport     = ImGui::FindWindowByName("Viewport");
+    if(viewport)
+    {
+      viewportSize = {uint32_t(viewport->Size.x), uint32_t(viewport->Size.y)};
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+      ImGui::Begin("Viewport");
+      ImGui::End();
+      ImGui::PopStyleVar();
+    }
+
+    // Verify if the viewport has a new size and resize the G-Buffer accordingly.
+    if(m_viewportSize.width != viewportSize.width || m_viewportSize.height != viewportSize.height)
+    {
+      onViewportSizeChange(viewportSize);
+    }
+
+    if(m_screenShotRequested && (m_frameRingCurrent == m_screenShotFrame))
+    {
+      saveScreenShot(m_screenShotFilename, k_imageQuality);
+      m_screenShotRequested = false;
+    }
+
+    // XR rendering
+    func(this);
+
+    // Update and Render additional Platform Windows (floating windows)
+    if((ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) != 0)
+    {
+      ImGui::UpdatePlatformWindows();
+      ImGui::RenderPlatformWindowsDefault();
+    }
+    ImGui::EndFrame();
+  }
+}
+
 //-----------------------------------------------------------------------
 // Call this function if the viewport size changes
 // This happens when the window is resized, or when the ImGui viewport window is resized.

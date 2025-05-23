@@ -80,6 +80,11 @@
 #include "ply_async_loader.h"
 #include "splat_sorter_async.h"
 
+enum Mode
+{
+  PC,
+  XR,
+};
 //
 class GaussianSplatting : public nvvkhl::IAppElement
 {
@@ -95,6 +100,8 @@ public:  // Methods specializing IAppElement
   void onResize(VkCommandBuffer cmd, const VkExtent2D& size) override;
 
   void onRender(VkCommandBuffer cmd) override;
+  
+  Mode m_mode = Mode::PC;
 
   void onUIRender() override;
 
@@ -105,7 +112,10 @@ public:  // Methods specializing IAppElement
   // handle recent files save/load at imgui level
   void registerRecentFilesHandler();
 
+
 private:  // Methods
+  void renderPC(VkCommandBuffer cmd);
+  void renderXR(VkCommandBuffer cmd);
   void initGbuffers(const glm::vec2& size);
 
   void deinitGbuffers();
