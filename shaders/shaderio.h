@@ -70,6 +70,9 @@
 // This configuration is optimized for NVIDIA hardware
 #define RASTER_MESH_WORKGROUP_SIZE 32
 
+#define GSMODE_3DGS 0
+#define GSMODE_SPACETIME_LITE 1
+
 #ifdef __cplusplus
 #include <glm/glm.hpp>
 // used to assign fields defaults
@@ -107,6 +110,7 @@ struct FrameInfo
   int sortingMethod        DEFAULT(SORTING_GPU_SYNC_RADIX);
   float frustumDilation    DEFAULT(0.2f);           // for frustum culling, 2% scale
   float alphaCullThreshold DEFAULT(1.0f / 255.0f);  // for alpha culling
+  float timestamp          DEFAULT(0.0f);
 };
 
 // TODO will be used for model transformation

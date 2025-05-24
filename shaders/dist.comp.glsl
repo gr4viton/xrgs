@@ -60,7 +60,15 @@ void main()
   if(id >= frameInfo.splatCount)
     return;
 
-  vec4 pos          = vec4(fetchCenter(id), 1.0);
+#if GSMODE != GSMODE_3DGS
+  const float deltaT = fetchDeltaT(id, frameInfo.timestamp);
+#endif
+
+  vec4 pos          = vec4(fetchCenter(id
+#if GSMODE != GSMODE_3DGS
+      , deltaT
+#endif
+  ), 1.0);
   pos               = frameInfo.projectionMatrix * frameInfo.viewMatrix * pos;
   pos               = pos / pos.w;
   const float depth = pos.z;

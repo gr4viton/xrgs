@@ -89,10 +89,27 @@ vec3 fetchCenter(in uint splatIndex)
   return vec3(texelFetch(centersTexture, getDataPos(splatIndex, 1, 0, textureSize(centersTexture, 0)), 0));
 }
 #else
+
 // fetch center value from data buffer
-vec3 fetchCenter(in uint splatIndex)
+vec3 fetchCenter(
+    in uint splatIndex
+#if GSMODE != GSMODE_3DGS
+    ,in float deltaT
+#endif
+)
 {
+#if GSMODE == GSMODE_3DGS
   return vec3(centersBuffer[splatIndex * 3 + 0], centersBuffer[splatIndex * 3 + 1], centersBuffer[splatIndex * 3 + 2]);
+#else   // spacetime gaussian
+  vec3 a0 = vec3(centersBuffer[splatIndex * 3 + 0], centersBuffer[splatIndex * 3 + 1], centersBuffer[splatIndex * 3 + 2]);
+  vec3      a1 = vec3(sphericalHarmonicsBuffer[splatIndex * 22 + 0], sphericalHarmonicsBuffer[splatIndex * 22 + 1],
+                      sphericalHarmonicsBuffer[splatIndex * 22 + 2]);
+  vec3      a2 = vec3(sphericalHarmonicsBuffer[splatIndex * 22 + 3], sphericalHarmonicsBuffer[splatIndex * 22 + 4],
+                      sphericalHarmonicsBuffer[splatIndex * 22 + 5]);
+  vec3      a3 = vec3(sphericalHarmonicsBuffer[splatIndex * 22 + 6], sphericalHarmonicsBuffer[splatIndex * 22 + 7],
+                      sphericalHarmonicsBuffer[splatIndex * 22 + 8]);
+  return (a0 + a1 * deltaT) + (a2 + a3 * deltaT) * (deltaT * deltaT);
+#endif
 }
 #endif
 
@@ -104,10 +121,19 @@ vec4 fetchColor(in uint splatIndex)
 }
 #else
 // fetch center value from data buffer
-vec4 fetchColor(in uint splatIndex)
+vec4 fetchColor(
+    in uint splatIndex
+#if GSMODE != GSMODE_3DGS
+    , in float deltaT
+#endif
+)
 {
-  return vec4(colorsBuffer[splatIndex * 4 + 0], colorsBuffer[splatIndex * 4 + 1], colorsBuffer[splatIndex * 4 + 2],
+  vec4 color = vec4(colorsBuffer[splatIndex * 4 + 0], colorsBuffer[splatIndex * 4 + 1], colorsBuffer[splatIndex * 4 + 2],
               colorsBuffer[splatIndex * 4 + 3]);
+#if GSMODE != GSMODE_3DGS  // spacetime gaussian
+  color.a    = color.a * exp(-sphericalHarmonicsBuffer[splatIndex * 22 + 21] * deltaT * deltaT);
+#endif
+  return color;
 }
 #endif
 
@@ -222,8 +248,8 @@ void fetchSh(in uint  splatIndex,
 #endif
 
 }
-#else
-// fetch from data buffers
+#else// fetch from data buffers
+#if GSMODE == GSMODE_3DGS
 void fetchSh(
   in uint splatIndex ,out vec3 shd1[3] 
 #if MAX_SH_DEGREE >= 2
@@ -350,6 +376,10 @@ void fetchSh(
 #endif
 #endif
 }
+#endif //GSMODE == GSMODE_3DGS
+#if GSMODE == GSMODE_SPACETIME_LITE
+
+#endif  //GSMODE == GSMODE_SPACETIME_LITE
 #endif
 
 #if DATA_STORAGE == STORAGE_TEXTURES
@@ -380,8 +410,15 @@ mat3 fetchCovariance(in uint splatIndex)
               cov3D_M22_M23_M33.y, cov3D_M11_M12_M13.z, cov3D_M22_M23_M33.y, cov3D_M22_M23_M33.z);
 }
 #else
-mat3 fetchCovariance(in uint splatIndex)
+
+mat3 fetchCovariance(
+    in uint splatIndex
+#if GSMODE != GSMODE_3DGS
+    , in float deltaT
+#endif
+)
 {
+#if GSMODE == GSMODE_3DGS
   // Use RGBA texture map to store sets of 3 elements requires some offset shifting depending on splatIndex
   const vec3 cov3D_M11_M12_M13 = vec3(covariancesBuffer[splatIndex * 6 + 0], covariancesBuffer[splatIndex * 6 + 1],
                                       covariancesBuffer[splatIndex * 6 + 2]);
@@ -390,5 +427,36 @@ mat3 fetchCovariance(in uint splatIndex)
 
   return mat3(cov3D_M11_M12_M13.x, cov3D_M11_M12_M13.y, cov3D_M11_M12_M13.z, cov3D_M11_M12_M13.y, cov3D_M22_M23_M33.x,
               cov3D_M22_M23_M33.y, cov3D_M11_M12_M13.z, cov3D_M22_M23_M33.y, cov3D_M22_M23_M33.z);
+#else
+  vec3 s     = vec3(sphericalHarmonicsBuffer[splatIndex * 22 + 9], sphericalHarmonicsBuffer[splatIndex * 22 + 10],
+                    sphericalHarmonicsBuffer[splatIndex * 22 + 11]);
+  vec4 q     = vec4(sphericalHarmonicsBuffer[splatIndex * 22 + 12], sphericalHarmonicsBuffer[splatIndex * 22 + 13],
+                    sphericalHarmonicsBuffer[splatIndex * 22 + 14], sphericalHarmonicsBuffer[splatIndex * 22 + 15]);
+  vec4 omega = vec4(sphericalHarmonicsBuffer[splatIndex * 22 + 16], sphericalHarmonicsBuffer[splatIndex * 22 + 17],
+                    sphericalHarmonicsBuffer[splatIndex * 22 + 18], sphericalHarmonicsBuffer[splatIndex * 22 + 19]);
+  q          = q + deltaT * omega;
+  q          = q / length(q);
+
+  float xx  = q.x * q.x;
+  float yy  = q.y * q.y;
+  float zz  = q.z * q.z;
+  float xy  = q.x * q.y;
+  float xz  = q.x * q.z;
+  float yz  = q.y * q.z;
+  float wx  = q.w * q.x;
+  float wy  = q.w * q.y;
+  float wz  = q.w * q.z;
+  mat3  rot = mat3(1.0 - 2.0 * (yy + zz), 2.0 * (xy + wz), 2.0 * (xz - wy), 2.0 * (xy - wz), 1.0 - 2.0 * (xx + zz),
+                        2.0 * (yz + wx), 2.0 * (xz + wy), 2.0 * (yz - wx), 1.0 - 2.0 * (xx + yy) );
+  mat3  ss  = mat3(s.x * s.x, 0.0, 0.0, 0.0, s.y * s.y, 0.0, 0.0, 0.0, s.z * s.z);
+  return rot * ss * transpose(rot);
+#endif
+}
+#endif
+
+#if GSMODE != GSMODE_3DGS
+float fetchDeltaT(in uint splatIndex, in float T)
+{
+  return T - sphericalHarmonicsBuffer[splatIndex * 22 + 20];
 }
 #endif

@@ -94,5 +94,9 @@ void main()
   const float opacity = exp(-0.5 * A) * inSplatCol.a;
 #endif
 
-  outColor = vec4(inSplatCol.rgb, opacity);
+#if GAMMA_CORRECTION
+  outColor = vec4(pow(inSplatCol.rgb, vec3(2.2)), opacity);
+#else
+  outColor            = vec4(inSplatCol.rgb, opacity);
+#endif
 }

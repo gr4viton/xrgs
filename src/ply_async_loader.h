@@ -28,6 +28,7 @@
 //
 #include "splat_set.h"
 
+enum GSMode;
 //
 class PlyAsyncLoader
 {
@@ -40,6 +41,8 @@ public:
     E_LOADED,    // loader has finished loading, model is available. call reset before another load.
     E_FAILURE    // an error eccured. call reset before another load.
   };
+
+  GSMode m_gsMode;
 
 public:
   // starts the loader thread
@@ -87,6 +90,8 @@ public:
 private:
   // actually loads the scene
   bool innerLoad(std::string filename, SplatSet& output);
+  bool innerLoad_3DGS(std::string filename, SplatSet& output);
+  bool innerLoad_SpaceTime_Lite(std::string filename, SplatSet& output);
 
   // in {0.0,1.0}
   void setProgress(float progress)

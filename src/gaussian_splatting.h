@@ -85,6 +85,12 @@ enum Mode
   PC,
   XR,
 };
+enum GSMode
+{
+  GSMode_3DGS,
+  GSMode_SPACETIME_LITE,
+};
+
 //
 class GaussianSplatting : public nvvkhl::IAppElement
 {
@@ -103,6 +109,7 @@ public:  // Methods specializing IAppElement
   void renderView(VkCommandBuffer cmd, void* view, void* camera, void* image = nullptr);
   
   Mode m_mode = Mode::PC;
+  GSMode m_gsMode = GSMode::GSMode_3DGS;
 
   void onUIRender() override;
 
@@ -147,6 +154,8 @@ private:  // Methods
   // create the buffers on the device and upload
   // the splat set data from host to device
   void initDataBuffers(void);
+  void initDataBuffers_3DGS(void);
+  void initDataBuffers_SpaceTime_Lite(void);
 
   // release buffers at next frame
   void deinitDataBuffers(void);
@@ -234,7 +243,8 @@ private:  // Methods
     GUI_SORTING,          // the sorting method to use
     GUI_PIPELINE,         // the rendering pipeline to use
     GUI_FRUSTUM_CULLING,  // where to perform frustum culling (or disabled)
-    GUI_SH_FORMAT         // data format for storage of SH in VRAM
+    GUI_SH_FORMAT,         // data format for storage of SH in VRAM
+    GUI_GSMODE
   };
 
   // initialize UI specifics

@@ -85,6 +85,7 @@ layout(set = 0, binding = BINDING_INDIRECT_BUFFER, scalar) buffer _indirect
 
 void main()
 {
+#if GSMODE == GSMODE_3DGS
   const uint32_t baseIndex  = gl_GlobalInvocationID.x;
 #if FRUSTUM_CULLING_MODE == FRUSTUM_CULLING_AT_DIST
   // if culling is already performed we use the subset of splats
@@ -316,4 +317,5 @@ void main()
       gl_MeshVerticesEXT[gl_LocalInvocationIndex * 4 + i].gl_Position = quadPos;
     }
   }
+#endif
 }

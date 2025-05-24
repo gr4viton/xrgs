@@ -33,6 +33,7 @@ GaussianSplatting::GaussianSplatting(std::shared_ptr<nvvkhl::ElementProfiler>   
     : m_profiler(profiler)
     , m_benchmark()
 {
+  m_plyLoader.m_gsMode = m_gsMode;
   if(!benchmark)
     return;
   // Register command line arguments
@@ -324,6 +325,16 @@ void GaussianSplatting::onRender(VkCommandBuffer cmd)
 
 void GaussianSplatting::updateAndUploadFrameInfoUBO(VkCommandBuffer cmd, const uint32_t splatCount, const void* data)
 {
+  static auto  lastTime    = std::chrono::high_resolution_clock::now();
+  static float timer       = 0.0f;
+  auto         currentTime = std::chrono::high_resolution_clock::now();
+  auto         duration    = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastTime);
+  lastTime                 = currentTime;
+  timer += duration.count()/1000.0f;
+  if(timer > 1.0f)
+  {
+    timer = 0.0f;
+  }
   // auto timerSection = m_profiler->timeRecurring("UBO update", cmd);
   CameraConstants* cameraXR    = (CameraConstants*)data;
   auto             screen_size = data ? glm::vec2((float)cameraXR->viewport.width, (float)cameraXR->viewport.height) :
@@ -362,6 +373,7 @@ void GaussianSplatting::updateAndUploadFrameInfoUBO(VkCommandBuffer cmd, const u
   m_frameInfo.basisViewport          = glm::vec2(1.0f / screen_size.x, 1.0f / screen_size.y);
   m_frameInfo.focal                  = glm::vec2(focalLengthX, focalLengthY);
   m_frameInfo.inverseFocalAdjustment = 1.0f / focalAdjustment;
+  m_frameInfo.timestamp              = timer;
 
   vkCmdUpdateBuffer(cmd, m_frameInfoBuffer.buffer, 0, sizeof(shaderio::FrameInfo), &m_frameInfo);
 
@@ -708,6 +720,7 @@ void GaussianSplatting::deinitScene()
 
 bool GaussianSplatting::initShaders(void)
 {
+  bool gammaCorrection = m_mode == Mode::PC ? false : true;
   auto startTime = std::chrono::high_resolution_clock::now();
 
   // blank page
@@ -725,6 +738,8 @@ bool GaussianSplatting::initShaders(void)
   prepends += nvh::stringFormat("#define SH_FORMAT %d\n", m_defines.shFormat);
   prepends += nvh::stringFormat("#define POINT_CLOUD_MODE %d\n", m_defines.pointCloudModeEnabled);
   prepends += nvh::stringFormat("#define USE_BARYCENTRIC %d\n", m_defines.fragmentBarycentric);
+  prepends += nvh::stringFormat("#define GAMMA_CORRECTION %d\n", gammaCorrection);
+  prepends += nvh::stringFormat("#define GSMODE %d\n", (int)m_gsMode);
 
   // generate the shader modules
   m_shaders.distShader   = m_shaderManager.createShaderModule(VK_SHADER_STAGE_COMPUTE_BIT, "dist.comp.glsl", prepends);
@@ -1037,7 +1052,21 @@ inline void storeSh(int format, float* srcBuffer, uint32_t srcIndex, void* dstBu
 ///////////////////
 // using data buffers to store splatset in VRAM
 
-void GaussianSplatting::initDataBuffers(void)
+void GaussianSplatting::initDataBuffers(void) {
+  switch(m_gsMode)
+  {
+    case GSMODE_3DGS:
+      initDataBuffers_3DGS();
+      break;
+    case GSMODE_SPACETIME_LITE:
+      initDataBuffers_SpaceTime_Lite();
+      break;
+    default:
+      break;
+  }
+}
+
+void GaussianSplatting::initDataBuffers_3DGS(void)
 {
   auto       startTime  = std::chrono::high_resolution_clock::now();
   const auto splatCount = (uint32_t)m_splatSet.positions.size() / 3;
@@ -1282,6 +1311,248 @@ void GaussianSplatting::initDataBuffers(void)
     m_modelMemoryStats.srcShOther  = (uint32_t)m_splatSet.f_rest.size() * sizeof(float);
     m_modelMemoryStats.odevShOther = bufferSize;  // no compression or quantization
     m_modelMemoryStats.devShOther  = bufferSize;
+  }
+
+  // sync with end of copy to device
+  VkMemoryBarrier barrier{VK_STRUCTURE_TYPE_MEMORY_BARRIER};
+  barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+  barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+  vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_MESH_SHADER_BIT_EXT,
+                       0, 1, &barrier, 0, NULL, 0, NULL);
+
+  m_app->submitAndWaitTempCmdBuffer(cmd);
+
+  // free temp buffers
+  for(auto& buffer : buffersToDestroy)
+  {
+    m_alloc->destroy(buffer);
+  }
+
+  // update statistics totals
+  m_modelMemoryStats.srcShAll  = m_modelMemoryStats.srcSh0 + m_modelMemoryStats.srcShOther;
+  m_modelMemoryStats.odevShAll = m_modelMemoryStats.odevSh0 + m_modelMemoryStats.odevShOther;
+  m_modelMemoryStats.devShAll  = m_modelMemoryStats.devSh0 + m_modelMemoryStats.devShOther;
+
+  m_modelMemoryStats.srcAll =
+      m_modelMemoryStats.srcCenters + m_modelMemoryStats.srcCov + m_modelMemoryStats.srcSh0 + m_modelMemoryStats.srcShOther;
+  m_modelMemoryStats.odevAll = m_modelMemoryStats.odevCenters + m_modelMemoryStats.odevCov + m_modelMemoryStats.odevSh0
+                               + m_modelMemoryStats.odevShOther;
+  m_modelMemoryStats.devAll =
+      m_modelMemoryStats.devCenters + m_modelMemoryStats.devCov + m_modelMemoryStats.devSh0 + m_modelMemoryStats.devShOther;
+
+  auto      endTime   = std::chrono::high_resolution_clock::now();
+  long long buildTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+  std::cout << "Data buffers updated in " << buildTime << "ms" << std::endl;
+}
+
+void GaussianSplatting::initDataBuffers_SpaceTime_Lite(void)
+{
+  auto       startTime  = std::chrono::high_resolution_clock::now();
+  const auto splatCount = (uint32_t)m_splatSet.positions.size() / 3;
+
+  VkCommandBuffer    cmd                  = m_app->createTempCmdBuffer();
+  VkBufferUsageFlags hostBufferUsageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+  VkMemoryPropertyFlags hostMemoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+  VkBufferUsageFlags deviceBufferUsageFlags = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT
+                                              | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
+                                              | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+  VkMemoryPropertyFlags deviceMemoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+  // set of buffer to be freed after command execution
+  std::vector<nvvk::Buffer> buffersToDestroy;
+
+  // Centers
+  {
+    const uint32_t bufferSize = splatCount * 3 * sizeof(float);
+
+    // allocate host and device buffers
+    nvvk::Buffer hostBuffer = m_alloc->createBuffer(bufferSize, hostBufferUsageFlags, hostMemoryPropertyFlags);
+
+    m_centersDevice = m_alloc->createBuffer(bufferSize, deviceBufferUsageFlags, deviceMemoryPropertyFlags);
+    m_dutil->DBG_NAME(m_centersDevice.buffer);
+
+    // map and fill host buffer
+    float* hostBufferMapped = static_cast<float*>(m_alloc->map(hostBuffer));
+    memcpy(hostBufferMapped, m_splatSet.positions.data(), bufferSize);
+    m_alloc->unmap(hostBuffer);
+
+    // copy from host buffer to device buffer
+    // barrier at the end of this method.
+    VkBufferCopy bc{.srcOffset = 0, .dstOffset = 0, .size = bufferSize};
+    vkCmdCopyBuffer(cmd, hostBuffer.buffer, m_centersDevice.buffer, 1, &bc);
+
+    // free host buffer after command execution
+    buffersToDestroy.push_back(hostBuffer);
+
+    // memory statistics
+    m_modelMemoryStats.srcCenters  = bufferSize;
+    m_modelMemoryStats.odevCenters = bufferSize;  // no compression or quantization
+    m_modelMemoryStats.devCenters  = bufferSize;  // same size as source
+  }
+
+  // covariances
+  { // we use this to store features6 in full model, so we do nothing here in lite model
+    const uint32_t bufferSize = splatCount * 2 * 3 * sizeof(float);
+
+    // allocate host and device buffers
+    nvvk::Buffer hostBuffer = m_alloc->createBuffer(bufferSize, hostBufferUsageFlags, hostMemoryPropertyFlags);
+
+    m_covariancesDevice = m_alloc->createBuffer(bufferSize, deviceBufferUsageFlags, deviceMemoryPropertyFlags);
+    m_dutil->DBG_NAME(m_covariancesDevice.buffer);
+
+    // map and fill host buffer
+    float* hostBufferMapped = static_cast<float*>(m_alloc->map(hostBuffer));
+
+    //for(uint32_t splatIdx = 0; splatIdx < splatCount; ++splatIdx)
+    START_PAR_LOOP(splatCount, splatIdx)
+    {
+      /*const auto stride3 = splatIdx * 3;
+      const auto stride4 = splatIdx * 4;
+      const auto stride6 = splatIdx * 6;
+      glm::vec3  scale{std::exp(m_splatSet.scale[stride3 + 0]), std::exp(m_splatSet.scale[stride3 + 1]),
+                      std::exp(m_splatSet.scale[stride3 + 2])};
+
+      glm::quat rotation{m_splatSet.rotation[stride4 + 0], m_splatSet.rotation[stride4 + 1],
+                         m_splatSet.rotation[stride4 + 2], m_splatSet.rotation[stride4 + 3]};
+      rotation = glm::normalize(rotation);
+
+      // computes the covariance
+      const glm::mat3 scaleMatrix           = glm::mat3(glm::scale(scale));
+      const glm::mat3 rotationMatrix        = glm::mat3_cast(rotation);  // where rotation is a quaternion
+      const glm::mat3 covarianceMatrix      = rotationMatrix * scaleMatrix;
+      glm::mat3       transformedCovariance = covarianceMatrix * glm::transpose(covarianceMatrix);
+
+      hostBufferMapped[stride6 + 0] = glm::value_ptr(transformedCovariance)[0];
+      hostBufferMapped[stride6 + 1] = glm::value_ptr(transformedCovariance)[3];
+      hostBufferMapped[stride6 + 2] = glm::value_ptr(transformedCovariance)[6];
+
+      hostBufferMapped[stride6 + 3] = glm::value_ptr(transformedCovariance)[4];
+      hostBufferMapped[stride6 + 4] = glm::value_ptr(transformedCovariance)[7];
+      hostBufferMapped[stride6 + 5] = glm::value_ptr(transformedCovariance)[8];*/
+    }
+    END_PAR_LOOP();
+
+    m_alloc->unmap(hostBuffer);
+
+    // copy from host buffer to device buffer
+    // barrier at the end of this method.
+    VkBufferCopy bc{.srcOffset = 0, .dstOffset = 0, .size = bufferSize};
+    vkCmdCopyBuffer(cmd, hostBuffer.buffer, m_covariancesDevice.buffer, 1, &bc);
+
+    // free host buffer after command execution
+    buffersToDestroy.push_back(hostBuffer);
+
+    // memory statistics
+    m_modelMemoryStats.srcCov  = (splatCount * (4 + 3)) * sizeof(float);
+    m_modelMemoryStats.odevCov = bufferSize;  // no compression
+    m_modelMemoryStats.devCov  = bufferSize;  // covariance takes less space than rotation + scale
+  }
+
+  // Colors. SH degree 0 is not view dependent, so we directly transform to base color
+  // this will make some economy of processing in the shader at each frame
+  {
+    const uint32_t bufferSize = splatCount * 4 * sizeof(float);
+
+    // allocate host and device buffers
+    nvvk::Buffer hostBuffer = m_alloc->createBuffer(bufferSize, hostBufferUsageFlags, hostMemoryPropertyFlags);
+
+    m_colorsDevice = m_alloc->createBuffer(bufferSize, deviceBufferUsageFlags, deviceMemoryPropertyFlags);
+    m_dutil->DBG_NAME(m_colorsDevice.buffer);
+
+    // fill host buffer
+    float* hostBufferMapped = static_cast<float*>(m_alloc->map(hostBuffer));
+
+    //for(uint32_t splatIdx = 0; splatIdx < splatCount; ++splatIdx)
+    START_PAR_LOOP(splatCount, splatIdx)
+    {
+      const auto  stride3           = splatIdx * 3;
+      const auto  stride4           = splatIdx * 4;
+      hostBufferMapped[stride4 + 0] = m_splatSet.f_dc[stride3 + 0];
+      hostBufferMapped[stride4 + 1] = m_splatSet.f_dc[stride3 + 1];
+      hostBufferMapped[stride4 + 2] = m_splatSet.f_dc[stride3 + 2];
+      hostBufferMapped[stride4 + 3] = 1.0f / (1.0f + std::exp(-m_splatSet.opacity[splatIdx]));
+    }
+    END_PAR_LOOP()
+
+    m_alloc->unmap(hostBuffer);
+
+    // copy from host buffer to device buffer
+    // barrier at the end of this method.
+    VkBufferCopy bc{.srcOffset = 0, .dstOffset = 0, .size = bufferSize};
+    vkCmdCopyBuffer(cmd, hostBuffer.buffer, m_colorsDevice.buffer, 1, &bc);
+
+    // free host buffer after command execution
+    buffersToDestroy.push_back(hostBuffer);
+
+    // memory statistics
+    m_modelMemoryStats.srcSh0  = bufferSize;
+    m_modelMemoryStats.odevSh0 = bufferSize;
+    m_modelMemoryStats.devSh0  = bufferSize;
+  }
+
+  // 3DGS: Spherical harmonics of degree 1 to 3
+  // 4DGS: motion9 scale3 rot_omega8 trbf2
+  {
+    const uint32_t bufferSize = splatCount * 22 * sizeof(float);
+
+    // allocate host and device buffers
+    nvvk::Buffer hostBuffer = m_alloc->createBuffer(bufferSize, hostBufferUsageFlags, hostMemoryPropertyFlags);
+
+    m_sphericalHarmonicsDevice = m_alloc->createBuffer(bufferSize, deviceBufferUsageFlags, deviceMemoryPropertyFlags);
+    m_dutil->DBG_NAME(m_sphericalHarmonicsDevice.buffer);
+
+    // fill host buffer
+    float* hostBufferMapped = static_cast<float*>(m_alloc->map(hostBuffer));
+
+    //for(uint32_t splatIdx = 0; splatIdx < splatCount; ++splatIdx)
+    START_PAR_LOOP(splatCount, splatIdx)
+    {
+      const auto stride3                  = splatIdx * 3;
+      const auto stride4                  = splatIdx * 4;
+      const auto stride15            = splatIdx * 15;
+      const auto stride22            = splatIdx * 22;
+      hostBufferMapped[stride22 + 0]  = m_splatSet.f_rest[stride15 + 0];
+      hostBufferMapped[stride22 + 1]  = m_splatSet.f_rest[stride15 + 1];
+      hostBufferMapped[stride22 + 2]  = m_splatSet.f_rest[stride15 + 2];
+      hostBufferMapped[stride22 + 3]  = m_splatSet.f_rest[stride15 + 3];
+      hostBufferMapped[stride22 + 4]  = m_splatSet.f_rest[stride15 + 4];
+      hostBufferMapped[stride22 + 5]  = m_splatSet.f_rest[stride15 + 5];
+      hostBufferMapped[stride22 + 6]  = m_splatSet.f_rest[stride15 + 6];
+      hostBufferMapped[stride22 + 7]  = m_splatSet.f_rest[stride15 + 7];
+      hostBufferMapped[stride22 + 8]  = m_splatSet.f_rest[stride15 + 8];
+      hostBufferMapped[stride22 + 9]      = std::exp(m_splatSet.scale[stride3 + 0]);
+      hostBufferMapped[stride22 + 10]     = std::exp(m_splatSet.scale[stride3 + 1]);
+      hostBufferMapped[stride22 + 11]     = std::exp(m_splatSet.scale[stride3 + 2]);
+      hostBufferMapped[stride22 + 12]     = m_splatSet.rotation[stride4 + 0];
+      hostBufferMapped[stride22 + 13]     = m_splatSet.rotation[stride4 + 1];
+      hostBufferMapped[stride22 + 14]     = m_splatSet.rotation[stride4 + 2];
+      hostBufferMapped[stride22 + 15]     = m_splatSet.rotation[stride4 + 3];
+      hostBufferMapped[stride22 + 16]     = m_splatSet.f_rest[stride15 + 9];
+      hostBufferMapped[stride22 + 17]     = m_splatSet.f_rest[stride15 + 10];
+      hostBufferMapped[stride22 + 18]     = m_splatSet.f_rest[stride15 + 11];
+      hostBufferMapped[stride22 + 19]     = m_splatSet.f_rest[stride15 + 12];
+      hostBufferMapped[stride22 + 20]     = m_splatSet.f_rest[stride15 + 13];
+      auto temp_scale                     = std::exp(-m_splatSet.f_rest[stride15 + 14]);
+      hostBufferMapped[stride22 + 21]     = temp_scale * temp_scale;
+    }
+    END_PAR_LOOP()
+
+    m_alloc->unmap(hostBuffer);
+
+    // copy from host buffer to device buffer
+    // barrier at the end of this method.
+    VkBufferCopy bc{.srcOffset = 0, .dstOffset = 0, .size = bufferSize};
+    vkCmdCopyBuffer(cmd, hostBuffer.buffer, m_sphericalHarmonicsDevice.buffer, 1, &bc);
+
+    // free host buffer after command execution
+    buffersToDestroy.push_back(hostBuffer);
+
+    // memory statistics
+    m_modelMemoryStats.srcSh0  = bufferSize;
+    m_modelMemoryStats.odevSh0 = bufferSize;
+    m_modelMemoryStats.devSh0  = bufferSize;
   }
 
   // sync with end of copy to device

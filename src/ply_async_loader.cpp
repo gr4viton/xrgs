@@ -29,6 +29,7 @@
 
 //
 #include "ply_async_loader.h"
+#include "gaussian_splatting.h"
 
 bool PlyAsyncLoader::loadScene(std::string filename, SplatSet& output)
 {
@@ -132,7 +133,19 @@ bool PlyAsyncLoader::reset()
   }
 }
 
-bool PlyAsyncLoader::innerLoad(std::string filename, SplatSet& output)
+bool PlyAsyncLoader::innerLoad(std::string filename, SplatSet& output) {
+  switch(m_gsMode)
+  {
+    case GSMODE_3DGS:
+      return innerLoad_3DGS(filename, output);
+    case GSMODE_SPACETIME_LITE:
+      return innerLoad_SpaceTime_Lite(filename, output);
+    default:
+      return false;
+  }
+}
+
+bool PlyAsyncLoader::innerLoad_3DGS(std::string filename, SplatSet& output)
 {
   auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -227,6 +240,104 @@ bool PlyAsyncLoader::innerLoad(std::string filename, SplatSet& output)
   else
   {
     std::cout << "Error: invalid 3DGS PLY file" << std::endl;
+  }
+
+  return gsFound;
+}
+
+bool PlyAsyncLoader::innerLoad_SpaceTime_Lite(std::string filename, SplatSet& output)
+{
+  auto startTime = std::chrono::high_resolution_clock::now();
+
+  // Open the file
+  miniply::PLYReader reader(filename.c_str());
+  if(!reader.valid())
+  {
+    std::cout << "Error: ply loader failed to open file: " << filename << std::endl;
+    return false;
+  }
+
+  uint32_t indices[45];
+  bool     gsFound = false;
+
+  while(reader.has_element() && !gsFound)
+  {
+    if(reader.element_is(miniply::kPLYVertexElement) && reader.load_element())
+    {
+      const uint32_t numVerts = reader.num_rows();
+      if(numVerts == 0)
+      {
+        std::cout << "Warning: ply loader skipping empty ply element " << std::endl;
+        continue;  // move to next while iteration
+      }
+      output.positions.resize(numVerts * 3);
+      output.scale.resize(numVerts * 3);
+      output.rotation.resize(numVerts * 4);
+      output.opacity.resize(numVerts);
+      output.f_dc.resize(numVerts * 3);
+      output.f_rest.resize(numVerts * 15);// trbf2 motion9 omega4
+      std::cout << "aaaaaaakskdhgjo\n";
+      // load progress
+      const uint32_t total  = numVerts * (3 + 3 + 4 + 1 + 3 + 15);
+      uint32_t       loaded = 0;
+
+      // put that first so the loading progress looks better
+      if(reader.find_properties(indices, 15, 
+          "motion_0", "motion_1", "motion_2", "motion_3", "motion_4", "motion_5", "motion_6", "motion_7", "motion_8", 
+          "omega_1", "omega_2", "omega_3", "omega_0", 
+          "trbf_center", "trbf_scale"))
+      {
+        reader.extract_properties(indices, 15, miniply::PLYPropertyType::Float, output.f_rest.data());
+        loaded += numVerts * 15;
+        setProgress(float(loaded) / float(total));
+      }
+      if(reader.find_properties(indices, 3, "x", "y", "z"))
+      {
+        reader.extract_properties(indices, 3, miniply::PLYPropertyType::Float, output.positions.data());
+        loaded += numVerts * 3;
+        setProgress(float(loaded) / float(total));
+      }
+      if(reader.find_properties(indices, 1, "opacity"))
+      {
+        reader.extract_properties(indices, 1, miniply::PLYPropertyType::Float, output.opacity.data());
+        loaded += numVerts;
+        setProgress(float(loaded) / float(total));
+      }
+      if(reader.find_properties(indices, 3, "scale_0", "scale_1", "scale_2"))
+      {
+        reader.extract_properties(indices, 3, miniply::PLYPropertyType::Float, output.scale.data());
+        loaded += numVerts * 3;
+        setProgress(float(loaded) / float(total));
+      }
+      if(reader.find_properties(indices, 4, "rot_1", "rot_2", "rot_3", "rot_0"))
+      {
+        reader.extract_properties(indices, 4, miniply::PLYPropertyType::Float, output.rotation.data());
+        loaded += numVerts * 4;
+        setProgress(float(loaded) / float(total));
+      }
+      if(reader.find_properties(indices, 3, "f_dc_0", "f_dc_1", "f_dc_2"))
+      {
+        reader.extract_properties(indices, 3, miniply::PLYPropertyType::Float, output.f_dc.data());
+        loaded += numVerts * 3;
+        setProgress(float(loaded) / float(total));
+      }
+
+
+      gsFound = true;
+    }
+
+    reader.next_element();
+  }
+
+  if(gsFound)
+  {
+    auto      endTime  = std::chrono::high_resolution_clock::now();
+    long long loadTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+    std::cout << "File loaded in " << loadTime << "ms" << std::endl;
+  }
+  else
+  {
+    std::cout << "Error: invalid 4DGS PLY file" << std::endl;
   }
 
   return gsFound;

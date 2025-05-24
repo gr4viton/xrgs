@@ -81,6 +81,9 @@ void GaussianSplatting::initGui()
   m_ui.enumAdd(GUI_SH_FORMAT, FORMAT_FLOAT32, "Float 32");
   m_ui.enumAdd(GUI_SH_FORMAT, FORMAT_FLOAT16, "Float 16");
   m_ui.enumAdd(GUI_SH_FORMAT, FORMAT_UINT8, "Uint8");
+  // gs mode
+  m_ui.enumAdd(GUI_GSMODE, GSMODE_3DGS, "3dgs");
+  m_ui.enumAdd(GUI_GSMODE, GSMODE_SPACETIME_LITE, "spacetime-lite");
 }
 
 void GaussianSplatting::onUIRender()
@@ -420,6 +423,15 @@ void GaussianSplatting::onUIRender()
           m_app->close();
         }
       }
+
+      if(PE::entry(
+             "gaussian mode", [&]() { return m_ui.enumCombobox(GUI_GSMODE, "##ID", &m_gsMode); },
+             "Selects 3dgs or 4dgs"))
+      {
+        m_plyLoader.m_gsMode = m_gsMode;
+        deinitAll();
+      }
+      PE::SliderFloat("timer", &m_frameInfo.timestamp, 0.0f, 1.0f, "%.2f", 0, "");
         
 
       PE::end();

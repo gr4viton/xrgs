@@ -69,9 +69,17 @@ layout(set = 0, binding = BINDING_FRAME_INFO_UBO, scalar) uniform _frameInfo
 void main()
 {
   const uint splatIndex = inSplatIndex;
+#if GSMODE != GSMODE_3DGS
+  const float deltaT = fetchDeltaT(splatIndex, frameInfo.timestamp);
+#endif
 
   // Work on splat position
-  const vec3 splatCenter = fetchCenter(splatIndex);
+  const vec3 splatCenter = fetchCenter(
+      splatIndex
+#if GSMODE != GSMODE_3DGS
+      , deltaT
+#endif
+  );
 
   const mat4 transformModelViewMatrix = frameInfo.viewMatrix;
   const vec4 viewCenter               = transformModelViewMatrix * vec4(splatCenter, 1.0);
@@ -97,7 +105,12 @@ void main()
   outFragPos = fragPos * sqrt8;
 #endif
 
-  vec4 splatColor = fetchColor(splatIndex);
+  vec4 splatColor = fetchColor(
+      splatIndex
+#if GSMODE != GSMODE_3DGS
+      , deltaT
+#endif
+  );
 
 #if SHOW_SH_ONLY == 1
   splatColor.r = 0.5;
@@ -105,6 +118,7 @@ void main()
   splatColor.b = 0.5;
 #endif
 
+#if GSMODE == GSMODE_3DGS
 #if MAX_SH_DEGREE >= 1
   // SH coefficients for degree 1 (1,2,3)
   vec3 shd1[3];
@@ -158,6 +172,7 @@ void main()
                         + SH_C3[5] * shd3[5] * (x * x - y * y) * z + SH_C3[6] * shd3[6] * x * (x * x - 3.0 * y * y);
 #endif
 #endif
+#endif
 
   // alpha based culling
   if(splatColor.a < frameInfo.alphaCullThreshold)
@@ -171,7 +186,12 @@ void main()
   outFragCol = splatColor;
 
   // Fetch and construct the 3D covariance matrix
-  const mat3 Vrk = fetchCovariance(splatIndex);
+  const mat3 Vrk = fetchCovariance(
+      splatIndex
+#if GSMODE != GSMODE_3DGS
+      , deltaT
+#endif
+  );
 
 #if ORTHOGRAPHIC_MODE == 1
   // Since the projection is linear, we don't need an approximation
