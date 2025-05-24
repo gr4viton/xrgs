@@ -8,3 +8,5 @@ out
 doc
 downloaded_resources
 .vs
+3rdparty/OpenXR.Loader.1.0.34/lib/openxr_loaderd.lib
+3rdparty/OpenXR.Loader.1.0.34/api_layers

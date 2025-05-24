@@ -67,6 +67,11 @@ public:
   VkImageView      GetXRImageView(int view);
   XrInstance       GetXrInstance() { return m_xrInstance; }
   XrSystemId       GetXrSystemId() { return m_systemID; }
+  bool             SupportUnorm()
+  {
+    return m_colorSwapchainInfos[0].swapchainFormat == VK_FORMAT_B8G8R8A8_UNORM
+           || m_colorSwapchainInfos[0].swapchainFormat == VK_FORMAT_R8G8B8A8_UNORM;
+  }
 
 private:
   XrInstance               m_xrInstance               = XR_NULL_HANDLE;

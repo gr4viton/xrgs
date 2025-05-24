@@ -228,7 +228,7 @@ void GaussianSplatting::onUIRender()
 
   if(ImGui::Begin("Settings"))
   {
-    if(ImGui::CollapsingHeader("Data storage and format", ImGuiTreeNodeFlags_DefaultOpen))
+    if(m_gsMode == GSMode::GSMode_3DGS && ImGui::CollapsingHeader("Data storage and format", ImGuiTreeNodeFlags_DefaultOpen))
     {
       PE::begin("##3DGS format");
       if(PE::entry(
@@ -263,7 +263,7 @@ void GaussianSplatting::onUIRender()
 
       PE::end();
 
-      PE::begin("##3DGS rendering");
+      PE::begin(m_gsMode == GSMode::GSMode_3DGS ? "##3DGS rendering" : "##Spacetime-lite rendering");
       if(PE::entry(
              "Default settings", [&] { return ImGui::Button("Reset"); }, "resets to default settings"))
       {
@@ -289,11 +289,13 @@ void GaussianSplatting::onUIRender()
 
       PE::Text("CPU sorting state", m_cpuSorter.getStatus() == SplatSorterAsync::E_SORTING ? "Sorting" : "Idled");
       ImGui::EndDisabled();
-
-      PE::entry(
-          "Rasterization", [&]() { return m_ui.enumCombobox(GUI_PIPELINE, "##ID", &m_selectedPipeline); },
-          "Selects the rendering pipeline, either Mesh Shader or Vertex Shader.");
-
+      if(m_gsMode == GSMode::GSMode_3DGS)
+      {
+        PE::entry(
+            "Rasterization", [&]() { return m_ui.enumCombobox(GUI_PIPELINE, "##ID", &m_selectedPipeline); },
+            "Selects the rendering pipeline, either Mesh Shader or Vertex Shader.");
+      }
+      
       // Radio buttons for exclusive selection
       PE::entry(
           "Frustum culling",
@@ -341,16 +343,18 @@ void GaussianSplatting::onUIRender()
       // we set a different size range for point and splat rendering
       PE::SliderFloat("Splat scale", (float*)&m_frameInfo.splatScale, 0.1f, m_defines.pointCloudModeEnabled != 0 ? 10.0f : 2.0f,
                       "%.3f", 0, "Adjusts the size of the splats for visualization purposes.");
+      if(m_gsMode == GSMode::GSMode_3DGS)
+      {
+        if(PE::SliderInt("Maximum SH degree", (int*)&m_defines.maxShDegree, 0, 3, "%d", 0,
+                         "Sets the highest degree of Spherical Harmonics (SH) used for view-dependent effects."))
+          m_updateShaders = true;
 
-      if(PE::SliderInt("Maximum SH degree", (int*)&m_defines.maxShDegree, 0, 3, "%d", 0,
-                       "Sets the highest degree of Spherical Harmonics (SH) used for view-dependent effects."))
-        m_updateShaders = true;
-
-      if(PE::Checkbox("Show SH deg > 0 only", &m_defines.showShOnly,
-                      "Removes the base color from SH degree 0, applying only color deduced from \n"
-                      "higher-degree SH to a neutral gray. This helps visualize their contribution."))
-        m_updateShaders = true;
-
+        if(PE::Checkbox("Show SH deg > 0 only", &m_defines.showShOnly,
+                        "Removes the base color from SH degree 0, applying only color deduced from \n"
+                        "higher-degree SH to a neutral gray. This helps visualize their contribution."))
+          m_updateShaders = true;
+      }
+      
       if(PE::Checkbox("Disable splatting", &m_defines.pointCloudModeEnabled,
                       "Switches to point cloud mode, displaying only the splat centers. \n"
                       "Other parameters such as Splat Scale still apply in this mode."))
@@ -414,10 +418,15 @@ void GaussianSplatting::onUIRender()
     if(ImGui::CollapsingHeader("Mode", ImGuiTreeNodeFlags_DefaultOpen))
     {
       PE::begin("##GLOB Mode ");
-      bool xr = false;
+      bool xr = m_mode == Mode::PC ? false : true;
       if(PE::Checkbox("Enter XR", &xr))
       {
-        if(xr)
+        if(xr && m_mode == Mode::PC)
+        {
+          m_app->setSwitchMode(true);
+          m_app->close();
+        }
+        else if(!xr && m_mode == Mode::XR)
         {
           m_app->setSwitchMode(true);
           m_app->close();
@@ -431,9 +440,16 @@ void GaussianSplatting::onUIRender()
         m_plyLoader.m_gsMode = m_gsMode;
         deinitAll();
       }
-      PE::SliderFloat("timer", &m_frameInfo.timestamp, 0.0f, 1.0f, "%.2f", 0, "");
-        
-
+      if(m_gsMode == GSMode::GSMode_SPACETIME_LITE)
+      {
+        if(PE::InputFloat("span", &m_defines.span)) {
+          m_defines.span = std::max(m_defines.span, 0.5f);
+        }
+        PE::SliderFloat("timer", &m_frameInfo.timestamp, 0.0f, m_defines.span, "%.2f", 0, "");
+        PE::SliderFloat("speed", &m_defines.speed, 0.1f, 2.0f, "%.1f", 0, "");
+        PE::Checkbox("pause", &m_defines.pause, "");
+      }
+      
       PE::end();
     }
   }

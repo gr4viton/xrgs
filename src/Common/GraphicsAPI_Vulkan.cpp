@@ -464,10 +464,10 @@ std::vector<std::string> GraphicsAPI_Vulkan::GetDeviceExtensionsForOpenXR(XrInst
 
 const std::vector<int64_t> GraphicsAPI_Vulkan::GetSupportedColorSwapchainFormats() {
     return {
-        VK_FORMAT_B8G8R8A8_SRGB,
-        VK_FORMAT_R8G8B8A8_SRGB,
-        VK_FORMAT_B8G8R8A8_UNORM,
-        VK_FORMAT_R8G8B8A8_UNORM};
+        VK_FORMAT_B8G8R8A8_UNORM, 
+        VK_FORMAT_R8G8B8A8_UNORM, 
+        VK_FORMAT_B8G8R8A8_SRGB, 
+        VK_FORMAT_R8G8B8A8_SRGB};
 }
 const std::vector<int64_t> GraphicsAPI_Vulkan::GetSupportedDepthSwapchainFormats() {
     return {

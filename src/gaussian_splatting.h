@@ -91,6 +91,7 @@ enum GSMode
   GSMode_SPACETIME_LITE,
 };
 
+class GraphicsAPI_Vulkan;
 //
 class GaussianSplatting : public nvvkhl::IAppElement
 {
@@ -110,6 +111,7 @@ public:  // Methods specializing IAppElement
   
   Mode m_mode = Mode::PC;
   GSMode m_gsMode = GSMode::GSMode_3DGS;
+  bool   m_headsetSupportUnorm = false;
 
   void onUIRender() override;
 
@@ -368,6 +370,10 @@ private:  // Attributes
     int  shFormat                = FORMAT_FLOAT32;
     int  dataStorage             = STORAGE_BUFFERS;
     bool fragmentBarycentric     = true;
+
+    bool pause = false;
+    float span  = 1.0f;
+    float speed = 1.0f;
   } m_defines;
 
   // Pipelines

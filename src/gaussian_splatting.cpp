@@ -26,6 +26,7 @@
 #include <nvh/misc.hpp>
 #include <glm/gtc/packing.hpp>  // Required for half-float operations
 #include "openxr_env.h"
+#include "GraphicsAPI_Vulkan.h"
 
 GaussianSplatting::GaussianSplatting(std::shared_ptr<nvvkhl::ElementProfiler>            profiler,
                                      std::shared_ptr<nvvkhl::ElementBenchmarkParameters> benchmark)
@@ -259,7 +260,7 @@ void GaussianSplatting::renderView(VkCommandBuffer cmd, void* view, void* camera
   {
     nvvk::cmdBarrierImageLayout(cmd, m_gBuffers->getColorImage(), VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     nvvk::cmdBarrierImageLayout(cmd, (VkImage)image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-
+    
     const glm::vec2   sourceResolution  = {static_cast<float>(extent.width), static_cast<float>(extent.height)};
     const float      sourceAspectRatio = sourceResolution.x / sourceResolution.y;
     const VkExtent2D gResolution          = m_gBuffers->getSize();
@@ -330,10 +331,11 @@ void GaussianSplatting::updateAndUploadFrameInfoUBO(VkCommandBuffer cmd, const u
   auto         currentTime = std::chrono::high_resolution_clock::now();
   auto         duration    = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastTime);
   lastTime                 = currentTime;
-  timer += duration.count()/1000.0f;
-  if(timer > 1.0f)
+  if(!m_defines.pause)
+    m_frameInfo.timestamp += duration.count() * m_defines.speed / 1000.0f;
+  if(m_frameInfo.timestamp > m_defines.span)
   {
-    timer = 0.0f;
+    m_frameInfo.timestamp = 0.0f;
   }
   // auto timerSection = m_profiler->timeRecurring("UBO update", cmd);
   CameraConstants* cameraXR    = (CameraConstants*)data;
@@ -373,7 +375,6 @@ void GaussianSplatting::updateAndUploadFrameInfoUBO(VkCommandBuffer cmd, const u
   m_frameInfo.basisViewport          = glm::vec2(1.0f / screen_size.x, 1.0f / screen_size.y);
   m_frameInfo.focal                  = glm::vec2(focalLengthX, focalLengthY);
   m_frameInfo.inverseFocalAdjustment = 1.0f / focalAdjustment;
-  m_frameInfo.timestamp              = timer;
 
   vkCmdUpdateBuffer(cmd, m_frameInfoBuffer.buffer, 0, sizeof(shaderio::FrameInfo), &m_frameInfo);
 
@@ -720,7 +721,7 @@ void GaussianSplatting::deinitScene()
 
 bool GaussianSplatting::initShaders(void)
 {
-  bool gammaCorrection = m_mode == Mode::PC ? false : true;
+  bool gammaCorrection = m_mode == Mode::PC ? false : (true && !m_headsetSupportUnorm);
   auto startTime = std::chrono::high_resolution_clock::now();
 
   // blank page
@@ -917,10 +918,21 @@ void GaussianSplatting::deinitPipelines()
 
   m_dset->deinitPool();
   m_dset->deinitLayout();
-
-  vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
-  vkDestroyPipeline(m_device, m_graphicsPipelineMesh, nullptr);
-  vkDestroyPipeline(m_device, m_computePipeline, nullptr);
+  if(m_graphicsPipeline)
+  {
+    vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
+    m_graphicsPipeline = nullptr;
+  }
+  if(m_graphicsPipelineMesh)
+  {
+    vkDestroyPipeline(m_device, m_graphicsPipelineMesh, nullptr);
+    m_graphicsPipelineMesh = nullptr;
+  }
+  if(m_computePipeline)
+  {
+    vkDestroyPipeline(m_device, m_computePipeline, nullptr);
+    m_computePipeline = nullptr;
+  }
 }
 
 void GaussianSplatting::initRendererBuffers()

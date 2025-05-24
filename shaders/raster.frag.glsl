@@ -67,6 +67,14 @@ layout(set = 0, binding = BINDING_FRAME_INFO_UBO, scalar) uniform FrameInfo_
   FrameInfo frameInfo;
 };
 
+vec3 sRGBToLinear(vec3 srgb)
+{
+  return mix(srgb / 12.92,                            // 线性部分
+             pow((srgb + 0.055) / 1.055, vec3(2.2)),  // 非线性部分
+             step(0.04045, srgb)                      // 条件判断
+  );
+}
+
 void main()
 {
 
@@ -95,7 +103,7 @@ void main()
 #endif
 
 #if GAMMA_CORRECTION
-  outColor = vec4(pow(inSplatCol.rgb, vec3(2.2)), opacity);
+  outColor = vec4(sRGBToLinear(inSplatCol.rgb), opacity);
 #else
   outColor            = vec4(inSplatCol.rgb, opacity);
 #endif

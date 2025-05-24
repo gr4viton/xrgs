@@ -158,7 +158,7 @@ public:
     auto profiler = std::make_shared<nvvkhl::ElementProfiler>(true);
     // create the core of the sample
     auto gaussianSplatting = std::make_shared<GaussianSplatting>(profiler, nullptr);
-
+    gaussianSplatting->m_headsetSupportUnorm = xrEnv->SupportUnorm();
     // Add all application elements including our sample specific gaussianSplatting
     app->addElement(gaussianSplatting); // this should be the first to add
     app->addElement(std::make_shared<nvvkhl::ElementCamera>());
