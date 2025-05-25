@@ -1,6 +1,7 @@
 # XRGS
 This a 3dgs/4dgs viewer that supports easy switching between PC and headset. The project is based on [vk_gaussian_splatting](https://github.com/nvpro-samples/vk_gaussian_splatting.git) and has added support for 4DGS(especially [Spacetime Gaussian Lite version](https://oppo-us-research.github.io/SpacetimeGaussians-website/)), designed specifically for viewing on PC and streaming for PCVR. BTW Khronos are you real human?
 ## Requirements
+- **Cmake >= 3.20** – [Download](https://cmake.org/).
 - **Vulkan >= 1.3 SDK** from LunarG – [Download](https://vulkan.lunarg.com/).  
 - **OpenXR >= 1.0.34 SDK** from Khronos – [Download](https://github.com/KhronosGroup/OpenXR-SDK/releases/download/release-1.0.34/OpenXR.Loader.1.0.34.nupkg).  
 - **CUDA >= v11.7** is **optional** and can be used to activate **NVML GPU monitoring** in the sample – [Download](https://developer.nvidia.com/cuda-downloads).
@@ -30,3 +31,5 @@ The viewer has two gaussian mode where you can switch at bottom right of the win
   - considering using vulkan multi view extension to decrease times of draw call and allocate only one swapchain.
 ## License
 This project follows the original License from [vk_gaussian_splatting](https://github.com/nvpro-samples/vk_gaussian_splatting.git).
+## More details
+Please refer to `README.md` from [vk_gaussian_splatting](https://github.com/nvpro-samples/vk_gaussian_splatting.git) for more details.
