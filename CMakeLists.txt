@@ -17,14 +17,14 @@ target_include_directories(${TARGET_NAME} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}
 
 if(WIN32)
   set_target_properties(${TARGET_NAME} PROPERTIES
-    IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/lib/openxr_loaderd.lib"
-    IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/lib/openxr_loader.lib"
-    IMPORTED_LOCATION_MINSIZEREL "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/lib/openxr_loader.lib"
-    IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/lib/openxr_loaderd.lib"
+    IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/native/x64/release/lib/openxr_loaderd.lib"
+    IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/native/x64/release/lib/openxr_loader.lib"
+    IMPORTED_LOCATION_MINSIZEREL "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/native/x64/release/lib/openxr_loader.lib"
+    IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/native/x64/release/lib/openxr_loaderd.lib"
   )
 else()
   set_target_properties(${TARGET_NAME} PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/lib/openxr_loader.lib"
+    IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/native/x64/release/lib/openxr_loader.lib"
   )
 endif()
 
@@ -142,13 +142,13 @@ _add_package_NVML()
 
 #####
 # Include Vulkan Radix Sort
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/vrdx)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/vulkan_radix_sort)
 
-set_property(TARGET vk_radix_sort PROPERTY FOLDER "ThirdParty/vrdx")
-set_property(TARGET spine_comp PROPERTY FOLDER "ThirdParty/vrdx")
-set_property(TARGET downsweep_comp PROPERTY FOLDER "ThirdParty/vrdx")
-set_property(TARGET downsweep_key_value_comp PROPERTY FOLDER "ThirdParty/vrdx")
-set_property(TARGET upsweep_comp PROPERTY FOLDER "ThirdParty/vrdx")
+set_property(TARGET vk_radix_sort PROPERTY FOLDER "ThirdParty/vulkan_radix_sort")
+set_property(TARGET spine_comp PROPERTY FOLDER "ThirdParty/vulkan_radix_sort")
+set_property(TARGET downsweep_comp PROPERTY FOLDER "ThirdParty/vulkan_radix_sort")
+set_property(TARGET downsweep_key_value_comp PROPERTY FOLDER "ThirdParty/vulkan_radix_sort")
+set_property(TARGET upsweep_comp PROPERTY FOLDER "ThirdParty/vulkan_radix_sort")
 
 #####################################################################################
 # process the rest of some cmake code that needs to be done *after* the packages add
@@ -165,7 +165,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/src 
   ${CMAKE_CURRENT_SOURCE_DIR}/shaders 
   ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/miniply
-  ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/vrdx)
+  ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/vulkan_radix_sort)
 
 #####################################################################################
 # Executable
@@ -231,3 +231,14 @@ _finalize_target( ${PROJNAME} )
 install(FILES ${SHADER_FILES} CONFIGURATIONS Release DESTINATION "bin_${ARCH}/GLSL_${PROJNAME}")
 install(FILES ${SHADER_FILES} CONFIGURATIONS Debug DESTINATION "bin_${ARCH}_debug/GLSL_${PROJNAME}")
 
+if(WIN32)
+  set(OPENXR_LOADER_DLL_RELEASE "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/native/x64/release/bin/openxr_loader.dll")
+
+  set(TARGET_OUTPUT_DIR "${CMAKE_CURRENT_LIST_DIR}/bin_x64")
+
+  add_custom_command(TARGET ${PROJNAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${TARGET_OUTPUT_DIR}/release"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${OPENXR_LOADER_DLL_RELEASE}" "${TARGET_OUTPUT_DIR}/release"
+    COMMENT "Copying openxr_loader.dll to ${TARGET_OUTPUT_DIR}/release"
+  )
+endif()
