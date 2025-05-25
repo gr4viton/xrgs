@@ -1,0 +1,6 @@
+[submodule "3rdparty/miniply"]
+	path = 3rdparty/miniply
+	url = https://github.com/vilya/miniply.git
+[submodule "3rdparty/vulkan_radix_sort"]
+	path = 3rdparty/vulkan_radix_sort
+	url = https://github.com/jaesung-cs/vulkan_radix_sort.git
