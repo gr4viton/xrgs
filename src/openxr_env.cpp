@@ -1,12 +1,14 @@
 #include <DebugOutput.h>
 #include <GraphicsAPI_Vulkan.h>
 #include <OpenXRDebugUtils.h>
+#include <chrono>
 
 #include <xr_linear_algebra.h>
 #include "openxr_env.h"
 #include <Common/GraphicsAPI.h>
 #include <OpenXRHelper.h>
 #include "gaussian_splatting.h"
+#include "Input.h"
 
 XrVector3f operator-(XrVector3f a, XrVector3f b) {
     return {a.x - b.x, a.y - b.y, a.z - b.z};
@@ -484,19 +486,19 @@ XrResult OpenXREnv::DestroySwapchains()
     return XR_SUCCESS;
 }
 bool OpenXREnv::BeginFrame(RenderLayerInfo& renderLayerInfo) {
+    m_frameState = {XR_TYPE_FRAME_STATE};
     // Get the XrFrameState for timing and rendering info.
-    XrFrameState    frameState{XR_TYPE_FRAME_STATE};
     XrFrameWaitInfo frameWaitInfo{XR_TYPE_FRAME_WAIT_INFO};
-    OPENXR_CHECK(xrWaitFrame(m_session, &frameWaitInfo, &frameState), "Failed to wait for XR Frame.");
+    OPENXR_CHECK(xrWaitFrame(m_session, &frameWaitInfo, &m_frameState), "Failed to wait for XR Frame.");
     // Tell the OpenXR compositor that the application is beginning the frame.
     XrFrameBeginInfo frameBeginInfo{XR_TYPE_FRAME_BEGIN_INFO};
     OPENXR_CHECK(xrBeginFrame(m_session, &frameBeginInfo), "Failed to begin the XR Frame.");
     // Variables for rendering and layer composition.
-    renderLayerInfo.predictedDisplayTime = frameState.predictedDisplayTime;
+    renderLayerInfo.predictedDisplayTime = m_frameState.predictedDisplayTime;
     // Check that the session is active and that we should render.
     bool sessionActive = (m_sessionState == XR_SESSION_STATE_SYNCHRONIZED || m_sessionState == XR_SESSION_STATE_VISIBLE
                           || m_sessionState == XR_SESSION_STATE_FOCUSED);
-    return sessionActive && frameState.shouldRender;
+    return sessionActive && m_frameState.shouldRender;
 }
 
 void OpenXREnv::EndFrame(RenderLayerInfo& renderLayerInfo)
@@ -558,6 +560,14 @@ bool OpenXREnv::RenderLayer(RenderLayerInfo& renderLayerInfo, VkCommandBuffer cm
         XrSwapchainImageWaitInfo waitInfo = {XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
         waitInfo.timeout                  = XR_INFINITE_DURATION;
         OPENXR_CHECK(xrWaitSwapchainImage(colorSwapchainInfo.swapchain, &waitInfo), "Failed to wait for Image from the Color Swapchain");
+    }
+    SyncAction(views);
+    auto head = glm::inverse(m_player.head.worldMatrix);
+    memcpy(&cameraConstants.head, &head, 16 * 4);
+
+    for(uint32_t i = 0; i < viewCount; i++)
+    {
+        SwapchainInfo& colorSwapchainInfo = m_colorSwapchainInfos[i];
 
         // Get the width and height and construct the viewport and scissors.
         const uint32_t& width    = m_viewConfigurationViews[i].recommendedImageRectWidth;
@@ -639,4 +649,42 @@ std::vector<std::string> OpenXREnv::GetDeviceExtensionsForOpenXR(XrInstance m_xr
         extensions.push_back(extension);
     }
     return extensions;
+}
+
+void OpenXREnv::InitController() {
+    m_input = std::make_unique<Inputspace::Input>(m_xrInstance, m_session);
+    if(!m_input->isValid())
+    {
+        std::cerr << "fail to create controller\n";
+    }
+
+    m_player.head = GameObject();
+    m_player.head.worldMatrix = glm::inverse(glm::mat4(1.0));
+    m_player.player           = PlayerObject("XR Player 1", &m_player.head, nullptr, nullptr);
+    m_player.gameBehaviours = {new LocomotionBehaviour(m_player.player, 1, 3, 1)};
+}
+
+void OpenXREnv::SyncAction(std::vector<XrView>& views)
+{
+    static float                                         gameTime = 0.0f;
+    static std::chrono::high_resolution_clock::time_point previousTime = std::chrono::high_resolution_clock::now();
+    const std::chrono::high_resolution_clock::time_point nowTime = std::chrono::high_resolution_clock::now();
+    const long long elapsedNanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - previousTime).count();
+    const float deltaTime = static_cast<float>(elapsedNanoseconds) / 1e9f;
+    previousTime          = nowTime;
+
+    if(!m_input->Sync(m_localSpace, m_frameState.predictedDisplayTime, views, m_sessionState))
+    {
+        std::cerr << "fail to sync controller\n";
+    }
+    const Inputspace::InputData& inputData    = m_input->GetInputData();
+    Inputspace::InputHaptics&    inputHaptics = m_input->GetInputHaptics();
+    gameTime += deltaTime;
+
+    // [tdbe] Update
+    for(size_t i = 0; i < m_player.gameBehaviours.size(); i++)
+    {
+        m_player.gameBehaviours[i]->Update(deltaTime, gameTime, inputData, inputHaptics);
+    }
+    m_input->ApplyHapticFeedbackRequests(inputHaptics);
 }

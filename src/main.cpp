@@ -129,6 +129,7 @@ public:
     SWITCH_CHECK(graphicsAPI->init(xrEnv->GetXrInstance(), xrEnv->GetXrSystemId()), "fail to create openxr compatible vulkan objects");
     xrEnv->GetGraphicsAPI(graphicsAPI);
     SWITCH_CHECK(xrEnv->InitSession(), "fail to create openxr session or swapchain");
+    xrEnv->InitController();
     // Application setup
     nvvkhl::ApplicationCreateInfo appSetup;
     appSetup.name                  = fmt::format("{}", PROJECT_NAME);

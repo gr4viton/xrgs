@@ -32,14 +32,20 @@ endif()
 set(XR_SOURCES
   "src/Common/GraphicsAPI.cpp"
   "src/Common/GraphicsAPI_Vulkan.cpp"
-  "src/Common/OpenXRDebugUtils.cpp")
+  "src/Common/OpenXRDebugUtils.cpp"
+  "src/gameMechanics/GameBehaviour.cpp"
+  "src/gameMechanics/LocomotionBehaviour.cpp"
+)
 set(XR_HEADERS
   "src/Common/DebugOutput.h"
   "src/Common/GraphicsAPI.h"
   "src/Common/GraphicsAPI_Vulkan.h"
   "src/Common/HelperFunctions.h"
   "src/Common/OpenXRDebugUtils.h"
-  "src/Common/OpenXRHelper.h")
+  "src/Common/OpenXRHelper.h"
+  "src/gameMechanics/GameBehaviour.h"
+  "src/gameMechanics/LocomotionBehaviour.h"
+)
 #####################################################################################
 # look for nvpro_core 1) as a sub-folder 2) at some other locations
 # this cannot be put anywhere else since we still didn't find setup.cmake yet

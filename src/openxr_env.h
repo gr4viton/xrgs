@@ -5,6 +5,9 @@
 #include <OpenXRDebugUtils.h>
 
 #include <xr_linear_algebra.h>
+#include "Input.h"
+#include "gameMechanics/GameBehaviour.h"
+#include "gameMechanics/LocomotionBehaviour.h"
 
 class MyApp;
 class GaussianSplatting;
@@ -22,7 +25,7 @@ struct CameraConstants
   XrMatrix4x4f View;
   XrVector3f   pos;
   XrExtent2Di  viewport;
-  XrVector4f   pad1;
+  glm::mat4   head;
   XrVector4f   pad2;
   XrVector4f   pad3;
 };
@@ -55,6 +58,7 @@ public:
 
   bool RenderLayer(RenderLayerInfo& renderLayerInfo, VkCommandBuffer cmd, std::shared_ptr<GaussianSplatting> gsRenderer);
   void RenderFrame(RenderLayerInfo& renderLayerInfo);
+  void SyncAction(std::vector<XrView>& views);
   bool BeginFrame(RenderLayerInfo& renderLayerInfo);
   void EndFrame(RenderLayerInfo& renderLayerInfo);
 
@@ -72,6 +76,7 @@ public:
     return m_colorSwapchainInfos[0].swapchainFormat == VK_FORMAT_B8G8R8A8_UNORM
            || m_colorSwapchainInfos[0].swapchainFormat == VK_FORMAT_R8G8B8A8_UNORM;
   }
+  void InitController();
 
 private:
   XrInstance               m_xrInstance               = XR_NULL_HANDLE;
@@ -115,6 +120,7 @@ private:
   XrReferenceSpaceType                m_refSpace                         = XR_REFERENCE_SPACE_TYPE_LOCAL;
 
   XrSpace m_localSpace = XR_NULL_HANDLE;
+  XrFrameState m_frameState{XR_TYPE_FRAME_STATE};
 
   // In STAGE space, viewHeightM should be 0. In LOCAL space, it should be offset downwards, below the viewer's initial position.
   float m_viewHeightM = 1.5f;
@@ -132,4 +138,12 @@ private:
   std::vector<const char*>               activeDeviceExtensions{};
 
   std::shared_ptr<GraphicsAPI_Vulkan> m_graphicsAPI = nullptr;
+
+  std::unique_ptr<Inputspace::Input> m_input = nullptr;
+  struct
+  {
+    GameObject head;
+    PlayerObject player;
+    std::vector<GameBehaviour*> gameBehaviours;
+  } m_player;
 };
