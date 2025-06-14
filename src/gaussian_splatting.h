@@ -113,6 +113,52 @@ public:  // Methods specializing IAppElement
   GSMode m_gsMode = GSMode::GSMode_3DGS;
   bool   m_headsetSupportUnorm = false;
 
+  struct ShaderDefines
+  {
+    int  frustumCulling          = FRUSTUM_CULLING_AT_DIST;
+    bool opacityGaussianDisabled = false;
+    bool showShOnly              = false;
+    int  maxShDegree             = 3;  // in [0,3]
+    bool pointCloudModeEnabled   = false;
+    int  shFormat                = FORMAT_FLOAT32;
+    int  dataStorage             = STORAGE_BUFFERS;
+    bool fragmentBarycentric     = true;
+
+    bool  pause = false;
+    float span  = 1.0f;
+    float speed = 1.0f;
+
+    void adjust4xr() { 
+      dataStorage = STORAGE_BUFFERS;
+      shFormat    = FORMAT_FLOAT16;
+      fragmentBarycentric = false;
+      frustumCulling      = FRUSTUM_CULLING_AT_DIST;
+      pause               = false;
+    }
+  };
+
+  struct RenderSettings
+  {
+    GaussianSplatting::ShaderDefines m_defines;
+    GSMode                           m_gsMode;
+    std::string                      m_sceneName;
+  };
+
+  void getRenderSettings(RenderSettings& settings) { 
+    settings.m_defines = m_defines;
+    settings.m_gsMode  = m_gsMode;
+    settings.m_sceneName = m_loadedSceneFilename;
+  }
+
+  void setRenderSettings(RenderSettings& settings)
+  {
+    settings.m_defines.adjust4xr();
+    m_defines                 = settings.m_defines;
+    m_gsMode              = settings.m_gsMode;
+    m_sceneToLoadFilename     = settings.m_sceneName;
+    m_plyLoader.m_gsMode      = m_gsMode;
+  }
+
   void onUIRender() override;
 
   void onUIMenu() override;
@@ -360,21 +406,7 @@ private:  // Attributes
 
   // This fields will be transformed to compilation definitions
   // and prepend to the shader code by initShaders
-  struct ShaderDefines
-  {
-    int  frustumCulling          = FRUSTUM_CULLING_AT_DIST;
-    bool opacityGaussianDisabled = false;
-    bool showShOnly              = false;
-    int  maxShDegree             = 3;  // in [0,3]
-    bool pointCloudModeEnabled   = false;
-    int  shFormat                = FORMAT_FLOAT32;
-    int  dataStorage             = STORAGE_BUFFERS;
-    bool fragmentBarycentric     = true;
-
-    bool pause = false;
-    float span  = 1.0f;
-    float speed = 1.0f;
-  } m_defines;
+  ShaderDefines m_defines;
 
   // Pipelines
   VkPipeline          m_graphicsPipeline     = VK_NULL_HANDLE;  // The graphic pipeline to render using vertex shaders

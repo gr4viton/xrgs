@@ -41,6 +41,7 @@ public:
   bool ifSwitchMode = false;
   Mode currentMode  = Mode::PC;
 
+  GaussianSplatting::RenderSettings m_renderSettings;
 
   void run()
   {
@@ -113,6 +114,7 @@ public:
     gaussianSplatting->m_mode = Mode::PC;
     app->run();
     ifSwitchMode = app->ifSwitchMode();
+    gaussianSplatting->getRenderSettings(m_renderSettings);
     app.reset();
     gaussianSplatting.reset();  // this module used vmaAllocator which is corresponded with vk objects, so deconstruct before graphicsAPI
     profiler.reset();
@@ -167,6 +169,7 @@ public:
     app->addElement(std::make_shared<nvvkhl::ElementNvml>());
     //
     gaussianSplatting->registerRecentFilesHandler();
+    gaussianSplatting->setRenderSettings(m_renderSettings);
     gaussianSplatting->m_mode = Mode::XR;
 
     std::function<void(nvvkhl::Application*)> renderFunc = [xrEnv, gaussianSplatting](nvvkhl::Application* app) {
