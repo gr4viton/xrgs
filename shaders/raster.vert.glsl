@@ -74,7 +74,7 @@ void main()
 #endif
 
   // Work on splat position
-  const vec3 splatCenter = fetchCenter(
+  const vec3 splatCenter = frameInfo.sceneScale * fetchCenter(
       splatIndex
 #if GSMODE != GSMODE_3DGS
       , deltaT
@@ -201,8 +201,9 @@ void main()
   // 3D covariance matrix instead of using the actual projection matrix because that transformation would
   // require a non-linear component (perspective division) which would yield a non-gaussian result.
   const float s = 1.0 / (viewCenter.z * viewCenter.z);
-  const mat3  J = mat3(frameInfo.focal.x / viewCenter.z, 0., -(frameInfo.focal.x * viewCenter.x) * s, 0.,
-                       frameInfo.focal.y / viewCenter.z, -(frameInfo.focal.y * viewCenter.y) * s, 0., 0., 0.);
+  const mat3  J = frameInfo.sceneScale
+                 * mat3(frameInfo.focal.x / viewCenter.z, 0., -(frameInfo.focal.x * viewCenter.x) * s, 0.,
+                        frameInfo.focal.y / viewCenter.z, -(frameInfo.focal.y * viewCenter.y) * s, 0., 0., 0.);
 #endif
 
   // Concatenate the projection approximation with the model-view transformation

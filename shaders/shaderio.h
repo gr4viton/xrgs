@@ -106,6 +106,7 @@ struct FrameInfo
   int orthographicMode DEFAULT(0);     // disabled, in [0,1]
   int splatCount       DEFAULT(0);     //
   float splatScale     DEFAULT(1.0f);  // in {0.1, 2.0}
+  float sceneScale     DEFAULT(1.0f);
 
   int sortingMethod        DEFAULT(SORTING_GPU_SYNC_RADIX);
   float frustumDilation    DEFAULT(0.2f);           // for frustum culling, 2% scale

@@ -338,11 +338,15 @@ void GaussianSplatting::onUIRender()
 
       if(PE::Checkbox("Fragment shader barycentric", &m_defines.fragmentBarycentric,
                       "Enables fragment shader barycentric to reduce vertex and mesh shaders outputs."))
+      {
         m_updateShaders = true;
+      }
 
       // we set a different size range for point and splat rendering
       PE::SliderFloat("Splat scale", (float*)&m_frameInfo.splatScale, 0.1f, m_defines.pointCloudModeEnabled != 0 ? 10.0f : 2.0f,
                       "%.3f", 0, "Adjusts the size of the splats for visualization purposes.");
+      PE::SliderFloat("Scene scale", (float*)&m_frameInfo.sceneScale, 0.1f, 2.0f,
+                      "%.3f", 0, "Adjusts the size of the scene.");
       if(m_gsMode == GSMode::GSMode_3DGS)
       {
         if(PE::SliderInt("Maximum SH degree", (int*)&m_defines.maxShDegree, 0, 3, "%d", 0,
