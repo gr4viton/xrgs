@@ -31,6 +31,7 @@
 #include <Common/GraphicsAPI.h>
 #include <Common/GraphicsAPI_Vulkan.h>
 #include "openxr_env.h"
+#include "inputData.h"
 
 class AppCtrl
 {
@@ -111,6 +112,7 @@ public:
     app->addElement(std::make_shared<nvvkhl::ElementNvml>());
     //
     gaussianSplatting->registerRecentFilesHandler();
+    gaussianSplatting->registerRecentSceneParamsHandler();
     gaussianSplatting->m_mode = Mode::PC;
     app->run();
     ifSwitchMode = app->ifSwitchMode();
@@ -170,8 +172,12 @@ public:
     app->addElement(std::make_shared<nvvkhl::ElementNvml>());
     //
     gaussianSplatting->registerRecentFilesHandler();
+    gaussianSplatting->registerRecentSceneParamsHandler();
+    app->loadIniSettings(); // register then load .ini
     gaussianSplatting->setRenderSettings(m_renderSettings);
     gaussianSplatting->m_mode = Mode::XR;
+
+    xrEnv->m_player.head.worldMatrix = glm::inverse(gaussianSplatting->getLoadedSceneCamera());
 
     std::function<void(nvvkhl::Application*)> renderFunc = [xrEnv, gaussianSplatting](nvvkhl::Application* app) {
       xrEnv->PollEvents();
@@ -194,6 +200,12 @@ public:
           app->endFrame(cmd);   // submit before release swapchain image
           app->presentFrame();
           xrEnv->EndFrame(renderLayerInfo);
+          // handle controller input(except poses which are already handled)
+
+          if(xrEnv->m_input->GetSelectClickData(Inputspace::SideEnum::RIGHT))
+          {
+            gaussianSplatting->updateRecentSceneParams();
+          }
       }
     };
 

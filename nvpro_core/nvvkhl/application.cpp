@@ -369,7 +369,7 @@ void nvvkhl::Application::runXR(std::function<void(nvvkhl::Application* app)> fu
     return;
   }
 
-  ImGui::LoadIniSettingsFromDisk(m_iniFilename.c_str());
+  //ImGui::LoadIniSettingsFromDisk(m_iniFilename.c_str());
   if(isWindowPosValid(m_windowHandle, m_winPos.x, m_winPos.y))
   {
     // Position must be set before size to take into account DPI

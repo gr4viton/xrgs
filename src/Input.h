@@ -33,6 +33,12 @@ class Input final
         bool Sync(XrSpace xrReferenceSpace, XrTime predictedDisplayTime, std::vector<XrView> eyePoses, XrSessionState sessionState);
         const InputData& GetInputData() const;
         InputHaptics& GetInputHaptics();
+
+        const float      GetGrabData(SideEnum side) const;
+        const XrVector2f GetThumbStickData(SideEnum side) const;
+        const bool       GetMenuClickData(SideEnum side) const;
+        const bool       GetSelectClickData(SideEnum side) const;
+
         void ApplyHapticFeedbackRequests(Inputspace::InputHaptics& inputHaptics);
 
     private:

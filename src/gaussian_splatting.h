@@ -157,6 +157,7 @@ public:  // Methods specializing IAppElement
     m_gsMode              = settings.m_gsMode;
     m_sceneToLoadFilename     = settings.m_sceneName;
     m_plyLoader.m_gsMode      = m_gsMode;
+    addToRecentFiles(m_sceneToLoadFilename);
   }
 
   void onUIRender() override;
@@ -167,7 +168,9 @@ public:  // Methods specializing IAppElement
 
   // handle recent files save/load at imgui level
   void registerRecentFilesHandler();
-
+  void registerRecentSceneParamsHandler();
+  void updateRecentSceneParams();
+  glm::mat4 getLoadedSceneCamera() { return m_recentSceneParams[0].first; }
 
 private:  // Methods
   void renderPC(VkCommandBuffer cmd);
@@ -306,10 +309,12 @@ private:  // Attributes
   std::string m_sceneToLoadFilename;
   // name of the loaded scene if successfull
   std::string m_loadedSceneFilename;
+  glm::mat4 m_loadedSceneParamsViewMat = glm::identity<glm::mat4>();
   // do we load a default scene at startup if none is provided through CLI
   bool m_enableDefaultScene = true;
   // Recent files list
   std::vector<std::string> m_recentFiles;
+  std::vector<std::pair<glm::mat4, float>> m_recentSceneParams;
   // scene loader
   PlyAsyncLoader m_plyLoader;
   // loaded model

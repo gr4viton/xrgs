@@ -139,6 +139,7 @@ private:
 
   std::shared_ptr<GraphicsAPI_Vulkan> m_graphicsAPI = nullptr;
 
+public:
   std::unique_ptr<Inputspace::Input> m_input = nullptr;
   struct
   {

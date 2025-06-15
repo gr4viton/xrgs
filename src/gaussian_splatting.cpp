@@ -345,7 +345,8 @@ void GaussianSplatting::updateAndUploadFrameInfoUBO(VkCommandBuffer cmd, const u
   if(data)
   {
     memcpy(&m_frameInfo, data, 16 * 4 * 2 + 4 * 3);  // proj view pos
-    m_frameInfo.viewMatrix = m_frameInfo.viewMatrix * cameraXR->head;
+    m_loadedSceneParamsViewMat = cameraXR->head;
+    m_frameInfo.viewMatrix     = m_frameInfo.viewMatrix * m_loadedSceneParamsViewMat;
     //m_frameInfo.projectionMatrix[1][1] *= -1;
     //glm::mat4 matrix        = glm::mat4(1.0f);
     //glm::mat4 rotatedMatrix = glm::rotate(matrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));

@@ -122,17 +122,6 @@ void LocomotionBehaviour::HandleMovementState(const float deltaTime, const Input
           playerObject.head->worldMatrix = rotationMatrix * playerObject.head->worldMatrix;
         }
 
-        for(int i = 0; i < 4; ++i)
-        {
-          for(int j = 0; j < 4; ++j)
-          {
-            if(glm::isnan(playerObject.head->worldMatrix[i][j]))
-            {
-              return;  // ∑¢œ÷ NaN£¨∑µªÿ true
-            }
-          }
-        }
-
         moveStateData.prevPosLeft = moveStateData.posLeft;
         moveStateData.prevPosRight = moveStateData.posRight;
         moveStateData.prevPosMiddle = moveStateData.posMiddle;

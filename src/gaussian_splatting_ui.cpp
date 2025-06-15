@@ -716,14 +716,22 @@ void GaussianSplatting::onUIMenu()
 void GaussianSplatting::addToRecentFiles(const std::string& filePath, int historySize)
 {
   auto it = std::find(m_recentFiles.begin(), m_recentFiles.end(), filePath);
+  auto mat4 = glm::identity<glm::mat4>();
+  float scale = 1.0f;
   if(it != m_recentFiles.end())
   {
-    m_recentFiles.erase(it);
+    size_t index = std::distance(m_recentFiles.begin(), it);
+    m_recentFiles.erase(m_recentFiles.begin() + index);
+    mat4 = m_recentSceneParams[index].first;
+    scale = m_recentSceneParams[index].second;
+    m_recentSceneParams.erase(m_recentSceneParams.begin() + index);
   }
   m_recentFiles.insert(m_recentFiles.begin(), filePath);
+  m_recentSceneParams.insert(m_recentSceneParams.begin(), {mat4, scale});
   if(m_recentFiles.size() > historySize)
   {
     m_recentFiles.pop_back();
+    m_recentSceneParams.pop_back();
   }
 }
 
@@ -761,6 +769,61 @@ void GaussianSplatting::registerRecentFilesHandler()
   //
   ImGuiSettingsHandler iniHandler;
   iniHandler.TypeName   = "RecentFiles";
+  iniHandler.TypeHash   = ImHashStr(iniHandler.TypeName);
+  iniHandler.ReadOpenFn = readOpen;
+  iniHandler.WriteAllFn = saveRecentFilesToIni;
+  iniHandler.ReadLineFn = loadRecentFilesFromIni;
+  iniHandler.UserData   = this;  // Pass the current instance to the handler
+  ImGui::GetCurrentContext()->SettingsHandlers.push_back(iniHandler);
+}
+
+void GaussianSplatting::updateRecentSceneParams()
+{
+  m_recentSceneParams[0] = {m_loadedSceneParamsViewMat, m_frameInfo.sceneScale};
+}
+
+// Register handler
+void GaussianSplatting::registerRecentSceneParamsHandler()
+{
+  // mandatory to work, see ImGui::DockContextInitialize as an example
+  auto readOpen = [](ImGuiContext*, ImGuiSettingsHandler*, const char* name) -> void* {
+    if(strcmp(name, "Data") != 0)
+      return NULL;
+    return (void*)1;
+  };
+
+  // Save settings handler, not using capture so can be used as a function pointer
+  auto saveRecentFilesToIni = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf) {
+    auto* self = static_cast<GaussianSplatting*>(handler->UserData);
+    buf->appendf("[%s][Data]\n", handler->TypeName);
+    for(const auto& scene : self->m_recentSceneParams)
+    {
+      auto& mat4 = scene.first;
+      auto  qua  = glm::quat_cast(glm::mat3(mat4));
+      auto  trans = glm::vec3(mat4[3]);
+      buf->appendf("Scene={\"qua\":[%.4f,%.4f,%.4f,%.4f],\"trans\":[%.4f,%.4f,%.4f],\"scale\":[%.4f]}\n", qua[0],
+                   qua[1], qua[2], qua[3], trans[0], trans[1], trans[2], scene.second);
+    }
+    buf->append("\n");
+  };
+
+  // Load settings handler, not using capture so can be used as a function pointer
+  auto loadRecentFilesFromIni = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line) {
+    auto* self = static_cast<GaussianSplatting*>(handler->UserData);
+    if(strncmp(line, "Scene=", 6) == 0)
+    {
+      glm::quat qua{};
+      glm::vec3 trans{};
+      float     scale = 1.0;
+      sscanf_s(line, "Scene={\"qua\":[%f,%f,%f,%f],\"trans\":[%f,%f,%f],\"scale\":[%f]}", &qua[0],
+               &qua[1], &qua[2], &qua[3], &trans[0], &trans[1], &trans[2], &scale);
+      self->m_recentSceneParams.push_back({glm::translate(glm::mat4(1.0f), trans) * glm::mat4_cast(qua), scale});
+    }
+  };
+
+  //
+  ImGuiSettingsHandler iniHandler;
+  iniHandler.TypeName   = "RecentSceneParams";
   iniHandler.TypeHash   = ImHashStr(iniHandler.TypeName);
   iniHandler.ReadOpenFn = readOpen;
   iniHandler.WriteAllFn = saveRecentFilesToIni;

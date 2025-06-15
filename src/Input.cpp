@@ -645,7 +645,7 @@ bool Input::Sync(XrSpace xrReferenceSpace, XrTime predictedDisplayTime, std::vec
 
         // [tdbe] State
         XrActionStateBoolean menuClickState = Input::GetActionBooleanState(actionSetData.menuClickAction, ci);
-        inputData.menuClickState.at(i) = menuClickState;      
+        inputData.menuClickState.at(i) = menuClickState;  
 
         // [tdbe] State
         XrActionStateBoolean selectClickState = Input::GetActionBooleanState(actionSetData.selectClickAction, ci);
@@ -661,6 +661,30 @@ bool Input::Sync(XrSpace xrReferenceSpace, XrTime predictedDisplayTime, std::vec
         
     }
     return true;
+}
+
+const float Input::GetGrabData(SideEnum side) const
+{
+    auto& state = inputData.grabState[(int)side];
+    return state.isActive ? state.currentState : 0.0f;
+}
+
+const XrVector2f Input::GetThumbStickData(SideEnum side) const
+{
+    auto& state = inputData.thumbStickState[(int)side];
+    return state.isActive ? state.currentState : XrVector2f{0.0f, 0.0f};
+}
+
+const bool Input::GetMenuClickData(SideEnum side) const
+{
+    auto& state = inputData.menuClickState[(int)side];
+    return state.isActive ? state.currentState : false;
+}
+
+const bool Input::GetSelectClickData(SideEnum side) const
+{
+    auto& state = inputData.selectClickState[(int)side];
+    return state.isActive ? state.currentState : false;
 }
 
 const InputData& Input::GetInputData() const

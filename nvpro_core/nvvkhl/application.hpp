@@ -168,6 +168,7 @@ public:
   // Application control
   void run();    // Run indefinitely until close is requested
   void runXR(std::function<void(nvvkhl::Application* app)> func);  // Run indefinitely until close is requested
+  void loadIniSettings() { ImGui::LoadIniSettingsFromDisk(m_iniFilename.c_str()); }
   void close();  // Stopping the application
 
   // Adding engines
