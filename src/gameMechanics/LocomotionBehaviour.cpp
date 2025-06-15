@@ -60,11 +60,11 @@ void LocomotionBehaviour::HandleMovementState(const float deltaTime, const Input
         moveStateData.prevPosLeft = glm::vec3(( inputData.controllerAimPoseMatrixes[(int)Inputspace::ControllerEnum::LEFT])[3]);//inputData.controllerGripPoses[(int)Inputspace::ControllerEnum::LEFT].position;
         moveStateData.prevPosRight = glm::vec3(( inputData.controllerAimPoseMatrixes[(int)Inputspace::ControllerEnum::RIGHT])[3]);//inputData.controllerGripPoses[(int)Inputspace::ControllerEnum::RIGHT].position;
         moveStateData.prevPosMiddle = 0.5f*(moveStateData.prevPosLeft + moveStateData.prevPosRight);
-        moveStateData.prevPosMiddle.y = 0;
+        //moveStateData.prevPosMiddle.y = 0;
 
         moveStateData.prevDirLeftRight = moveStateData.prevPosRight - moveStateData.prevPosLeft;
-        moveStateData.prevDirLeftRight.y = 0;
-        moveStateData.prevDirLeftRight = moveStateData.prevDirLeftRight / (float)moveStateData.prevDirLeftRight.length();
+        //moveStateData.prevDirLeftRight.y = 0;
+        moveStateData.prevDirLeftRight = glm::normalize(moveStateData.prevDirLeftRight);
 
         // [tdbe] request haptics
         inputHaptics.RequestHapticFeedback(Inputspace::ControllerEnum::LEFT, 0.25, XR_MIN_HAPTIC_DURATION, 0.25);
@@ -77,34 +77,61 @@ void LocomotionBehaviour::HandleMovementState(const float deltaTime, const Input
         moveStateData.posLeft = glm::vec3(( inputData.controllerAimPoseMatrixes[(int)Inputspace::ControllerEnum::LEFT])[3]);//inputData.controllerGripPoses[(int)Inputspace::ControllerEnum::LEFT].position;
         moveStateData.posRight = glm::vec3(( inputData.controllerAimPoseMatrixes[(int)Inputspace::ControllerEnum::RIGHT])[3]);//inputData.controllerGripPoses[(int)Inputspace::ControllerEnum::RIGHT].position;
         moveStateData.posMiddle = 0.5f*(moveStateData.posLeft + moveStateData.posRight);
-        moveStateData.posMiddle.y = 0;
+        //moveStateData.posMiddle.y = 0;
         moveStateData.moveDir = moveStateData.posMiddle - moveStateData.prevPosMiddle;
-        moveStateData.moveInputSpeed = moveStateData.moveDir.length();
-        moveStateData.moveDir = moveStateData.moveDir / moveStateData.moveInputSpeed;
+        //moveStateData.moveInputSpeed = glm::length(moveStateData.moveDir);
+        moveStateData.moveInputSpeed = glm::length(moveStateData.moveDir) * 400;
+        if(moveStateData.moveInputSpeed > 1e-3)
+        {
+          moveStateData.moveDir = moveStateData.moveDir / moveStateData.moveInputSpeed;
 
-        // [tdbe] TODO: 
-        //          Perhaps add an inertia to be able to do flick moves :)
-        //          And if you have a larger world: A mode with a bit of an upward leap, like in that Lucid Trips VR game.
-        
-        // [tdbe] move player along moveDir, with a speed scaled by hand movement speed.
-        float moveSpeed = avgGrabInput * movementSpeedScaler * glm::pow(moveStateData.moveInputSpeed, movementAccelerationPow);
-        glm::vec3 moveVec = -100.0f * moveStateData.moveDir * moveSpeed * deltaTime;
-        //printf("\n[LocomotionBehaviour][log] moveSpeed: {%f}, moveVec: {%f}{%f}{%f}", moveSpeed, moveVec.x, moveVec.y, moveVec.z);
-        playerObject.head->worldMatrix = glm::translate(playerObject.head->worldMatrix, moveVec);
-        //playerObject.handLeft->worldMatrix = glm::translate(playerObject.handLeft->worldMatrix, -moveVec);
-        moveVec.x = -moveVec.x;// because right hand is a flipped left hand model
-        //playerObject.handRight->worldMatrix = glm::translate(playerObject.handRight->worldMatrix, -moveVec);
+          // [tdbe] TODO:
+          //          Perhaps add an inertia to be able to do flick moves :)
+          //          And if you have a larger world: A mode with a bit of an upward leap, like in that Lucid Trips VR game.
+
+          // [tdbe] move player along moveDir, with a speed scaled by hand movement speed.
+          float moveSpeed = avgGrabInput * movementSpeedScaler * glm::pow(moveStateData.moveInputSpeed, movementAccelerationPow);
+          glm::vec3 moveVec = -100.0f * moveStateData.moveDir * moveSpeed * deltaTime;
+          //printf("\n[LocomotionBehaviour][log] moveSpeed: {%f}, moveVec: {%f}{%f}{%f}", moveSpeed, moveVec.x, moveVec.y, moveVec.z);
+          auto worldMatrixNow = glm::translate(playerObject.head->worldMatrix, moveVec);
+          playerObject.head->worldMatrix = worldMatrixNow;
+
+          //playerObject.handLeft->worldMatrix = glm::translate(playerObject.handLeft->worldMatrix, -moveVec);
+          //moveVec.x = -moveVec.x;// because right hand is a flipped left hand model
+          //playerObject.handRight->worldMatrix = glm::translate(playerObject.handRight->worldMatrix, -moveVec);
+        }
 
         // [tdbe] rotate player based on line between the hands
         moveStateData.dirLeftRight = moveStateData.posRight - moveStateData.posLeft;
-        moveStateData.dirLeftRight.y = 0;
-        moveStateData.dirLeftRight = moveStateData.dirLeftRight / (float)moveStateData.dirLeftRight.length();
-        glm::vec3 norm = glm::vec3(0,1,0);
-        float radang = util::vectorAngleAroundNormal(moveStateData.dirLeftRight,moveStateData.prevDirLeftRight, norm);
-        radang = 100.0f * avgGrabInput * rotationSpeedScaler * radang * deltaTime;
+        //moveStateData.dirLeftRight.y = 0;
+        moveStateData.dirLeftRight = glm::normalize(moveStateData.dirLeftRight);
+
+        //glm::vec3 norm = glm::vec3(0, 1, 0);
+        //float radang0 = util::vectorAngleAroundNormal(moveStateData.dirLeftRight,moveStateData.prevDirLeftRight, norm);
+        //float radang00 = 100.0f * avgGrabInput * rotationSpeedScaler * radang0 * deltaTime;
         //printf("\n[LocomotionBehaviour][log] rotation angle rad: %f", radang);
-        glm::vec3 camPos = glm::vec3(playerObject.head->worldMatrix[3]);
-        playerObject.head->worldMatrix = glm::rotate(playerObject.head->worldMatrix, radang, norm);
+        //glm::vec3 camPos = glm::vec3(playerObject.head->worldMatrix[3]);
+        //playerObject.head->worldMatrix = glm::rotate(playerObject.head->worldMatrix, radang, norm);
+
+        glm::vec3 axis = glm::cross(moveStateData.prevDirLeftRight, moveStateData.dirLeftRight);
+        if(glm::length(axis) > 1e-3)
+        {
+          float     radang         = glm::acos(glm::dot(moveStateData.prevDirLeftRight, moveStateData.dirLeftRight));
+          float     radang1        = 25.0f * avgGrabInput * rotationSpeedScaler * radang * deltaTime;
+          glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), -radang1, axis);
+          playerObject.head->worldMatrix = rotationMatrix * playerObject.head->worldMatrix;
+        }
+
+        for(int i = 0; i < 4; ++i)
+        {
+          for(int j = 0; j < 4; ++j)
+          {
+            if(glm::isnan(playerObject.head->worldMatrix[i][j]))
+            {
+              return;  // ∑¢œ÷ NaN£¨∑µªÿ true
+            }
+          }
+        }
 
         moveStateData.prevPosLeft = moveStateData.posLeft;
         moveStateData.prevPosRight = moveStateData.posRight;
