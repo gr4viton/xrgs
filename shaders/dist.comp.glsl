@@ -64,11 +64,12 @@ void main()
   const float deltaT = fetchDeltaT(id, frameInfo.timestamp);
 #endif
 
-  vec4 pos          = vec4(fetchCenter(id
+  vec4 pos = frameInfo.sceneScale * vec4(fetchCenter(id
 #if GSMODE != GSMODE_3DGS
       , deltaT
 #endif
   ), 1.0);
+  pos.w             = 1.0f;
   pos               = frameInfo.projectionMatrix * frameInfo.viewMatrix * pos;
   pos               = pos / pos.w;
   const float depth = pos.z;
