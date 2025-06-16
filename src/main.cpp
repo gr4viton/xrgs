@@ -178,6 +178,7 @@ public:
     gaussianSplatting->m_mode = Mode::XR;
 
     xrEnv->m_player.head.worldMatrix = glm::inverse(gaussianSplatting->getLoadedSceneCamera());
+    gaussianSplatting->initRecentSceneScale();
 
     std::function<void(nvvkhl::Application*)> renderFunc = [xrEnv, gaussianSplatting](nvvkhl::Application* app) {
       xrEnv->PollEvents();
@@ -201,11 +202,11 @@ public:
           app->presentFrame();
           xrEnv->EndFrame(renderLayerInfo);
           // handle controller input(except poses which are already handled)
-
           if(xrEnv->m_input->GetSelectClickData(Inputspace::SideEnum::RIGHT))
           {
             gaussianSplatting->updateRecentSceneParams();
           }
+          gaussianSplatting->updateRecentSceneScale(xrEnv->m_input->GetThumbStickData(Inputspace::SideEnum::RIGHT).x);
       }
     };
 

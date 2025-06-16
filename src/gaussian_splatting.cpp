@@ -666,7 +666,10 @@ void GaussianSplatting::initAll()
   // record default cam for reset in UI
   ImGuiH::SetHomeCamera({eye, center, up, CameraManip.getFov()});
   // reset general parameters
-  resetRenderSettings();
+  if(m_mode != Mode::XR)    // we want to inherit setting when entering XR
+  {
+    resetRenderSettings();
+  }
   // init a new setup
   initShaders();
   initRendererBuffers();

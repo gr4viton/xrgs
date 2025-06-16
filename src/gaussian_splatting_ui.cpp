@@ -782,6 +782,17 @@ void GaussianSplatting::updateRecentSceneParams()
   m_recentSceneParams[0] = {m_loadedSceneParamsViewMat, m_frameInfo.sceneScale};
 }
 
+void GaussianSplatting::updateRecentSceneScale(float factor)
+{
+  m_frameInfo.sceneScale += factor * 0.02f;
+  m_frameInfo.sceneScale = std::clamp(m_frameInfo.sceneScale, 0.1f, 2.0f);
+}
+
+void GaussianSplatting::initRecentSceneScale()
+{
+  m_frameInfo.sceneScale = m_recentSceneParams[0].second;
+}
+
 // Register handler
 void GaussianSplatting::registerRecentSceneParamsHandler()
 {

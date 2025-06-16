@@ -170,6 +170,8 @@ public:  // Methods specializing IAppElement
   void registerRecentFilesHandler();
   void registerRecentSceneParamsHandler();
   void updateRecentSceneParams();
+  void updateRecentSceneScale(float factor);
+  void      initRecentSceneScale();
   glm::mat4 getLoadedSceneCamera() { return m_recentSceneParams[0].first; }
 
 private:  // Methods
