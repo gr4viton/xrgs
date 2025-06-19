@@ -23,8 +23,6 @@ The viewer has two gaussian mode where you can switch at bottom right of the win
 - **spacetime-lite**:
   - This mode supports .ply file following the **lite** format from the original [Spacetime Gaussian Feature Splatting for Real-Time Dynamic View Synthesis](https://oppo-us-research.github.io/SpacetimeGaussians-website/) paper.
 ## TODO
-- Includes the functionality to move using a controller.
-  - For now, you can only move and spin your headset to move in the scene.
 - Fix the bug that image presented on PC is dark when using PCVR.
   - This is due to some headsets do not support UNORM image format. To gain the right result in headset, we need to do inverse Gamma Correction manually. Then the blitting image on PC is darker following that.
 - Optimize performance.
