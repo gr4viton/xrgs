@@ -12,10 +12,10 @@ Message(STATUS "Processing Project ${PROJNAME}:")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(TARGET_NAME openxr_loader)
 
-add_library(${TARGET_NAME} STATIC IMPORTED GLOBAL)
-target_include_directories(${TARGET_NAME} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/OpenXR.Loader.1.0.34/include")
-
 if(WIN32)
+  # Windows: Use specific OpenXR SDK structure
+  add_library(${TARGET_NAME} STATIC IMPORTED GLOBAL)
+  target_include_directories(${TARGET_NAME} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/OpenXR.Loader.1.0.34/include")
   set_target_properties(${TARGET_NAME} PROPERTIES
     IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/native/x64/release/lib/openxr_loaderd.lib"
     IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/native/x64/release/lib/openxr_loader.lib"
@@ -23,9 +23,15 @@ if(WIN32)
     IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/native/x64/release/lib/openxr_loaderd.lib"
   )
 else()
-  set_target_properties(${TARGET_NAME} PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/3rdparty/OpenXR.Loader.1.0.34/native/x64/release/lib/openxr_loader.lib"
-  )
+  # Linux: Use system-installed OpenXR libraries
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(OPENXR REQUIRED openxr)
+  
+  add_library(${TARGET_NAME} INTERFACE)
+  target_include_directories(${TARGET_NAME} INTERFACE ${OPENXR_INCLUDE_DIRS})
+  target_link_libraries(${TARGET_NAME} INTERFACE ${OPENXR_LIBRARIES})
+  target_link_directories(${TARGET_NAME} INTERFACE ${OPENXR_LIBRARY_DIRS})
+  target_compile_options(${TARGET_NAME} INTERFACE ${OPENXR_CFLAGS_OTHER})
 endif()
 
 # Files
@@ -218,7 +224,7 @@ target_include_directories(
     # In this repo
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Common/
 )
-target_link_libraries(${PROJNAME} ${PLATFORM_LIBRARIES} nvpro_core openxr_loader Vulkan::Vulkan vk_radix_sort)
+target_link_libraries(${PROJNAME} ${PLATFORM_LIBRARIES} nvpro_core /usr/lib/x86_64-linux-gnu/libopenxr_loader.so Vulkan::Vulkan vk_radix_sort)
 
 foreach(DEBUGLIB ${LIBRARIES_DEBUG})
   target_link_libraries(${PROJNAME} debug ${DEBUGLIB})

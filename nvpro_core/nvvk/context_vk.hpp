@@ -30,7 +30,7 @@
 
 #include "nsight_aftermath_vk.hpp"
 
-static_assert(VK_HEADER_VERSION >= 261, "Vulkan SDK version needs to be 1.3.261.0 or greater");
+static_assert(VK_HEADER_VERSION >= 204, "Vulkan SDK version needs to be 1.3.204.0 or greater");
 
 namespace nvvk {
 /** @DOC_START
@@ -107,8 +107,7 @@ then you are ready to create initialize `nvvk::Context`
 static const VkDeviceDiagnosticsConfigFlagsNV defaultAftermathFlags =
     (VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_RESOURCE_TRACKING_BIT_NV  // Additional information about the resource related to a GPU virtual address
      | VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_AUTOMATIC_CHECKPOINTS_BIT_NV  // Automatic checkpoints for all draw calls (ADD OVERHEAD)
-     | VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_DEBUG_INFO_BIT_NV  // instructs the shader compiler to generate debug information (ADD OVERHEAD)
-     | VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_ERROR_REPORTING_BIT_NV);
+     | VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_DEBUG_INFO_BIT_NV);  // instructs the shader compiler to generate debug information (ADD OVERHEAD)
 
 
 struct ContextCreateInfo

@@ -77,6 +77,7 @@
 #include "shaders/shaderio.h"
 
 #include "splat_set.h"
+#include "gs_mode.h"
 #include "ply_async_loader.h"
 #include "splat_sorter_async.h"
 
@@ -84,11 +85,6 @@ enum Mode
 {
   PC,
   XR,
-};
-enum GSMode
-{
-  GSMode_3DGS,
-  GSMode_SPACETIME_LITE,
 };
 
 class GraphicsAPI_Vulkan;

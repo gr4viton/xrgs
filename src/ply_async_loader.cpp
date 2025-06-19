@@ -136,9 +136,9 @@ bool PlyAsyncLoader::reset()
 bool PlyAsyncLoader::innerLoad(std::string filename, SplatSet& output) {
   switch(m_gsMode)
   {
-    case GSMODE_3DGS:
+    case GSMode_3DGS:
       return innerLoad_3DGS(filename, output);
-    case GSMODE_SPACETIME_LITE:
+    case GSMode_SPACETIME_LITE:
       return innerLoad_SpaceTime_Lite(filename, output);
     default:
       return false;

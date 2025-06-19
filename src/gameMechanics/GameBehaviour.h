@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Util.h"
-#include "../InputData.h"
+#include "../inputData.h"
 #include "../GameData.h"
 
 /* [tdbe] 

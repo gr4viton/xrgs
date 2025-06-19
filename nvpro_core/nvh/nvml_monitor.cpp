@@ -90,8 +90,8 @@ static const std::string brandToString(nvmlBrandType_t brand)
       return "NVIDIA Virtual Compute Server";
     case NVML_BRAND_NVIDIA_VWS:
       return "NVIDIA RTX Virtual Workstation";
-    case NVML_BRAND_NVIDIA_CLOUD_GAMING:
-      return "NVIDIA Cloud Gaming";
+    case NVML_BRAND_NVIDIA_VGAMING:
+      return "NVIDIA vGaming";
     case NVML_BRAND_QUADRO_RTX:
       return "Quadro RTX";
     case NVML_BRAND_NVIDIA_RTX:

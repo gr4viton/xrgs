@@ -826,7 +826,7 @@ void GaussianSplatting::registerRecentSceneParamsHandler()
       glm::quat qua{};
       glm::vec3 trans{};
       float     scale = 1.0;
-      sscanf_s(line, "Scene={\"qua\":[%f,%f,%f,%f],\"trans\":[%f,%f,%f],\"scale\":[%f]}", &qua[0],
+      sscanf(line, "Scene={\"qua\":[%f,%f,%f,%f],\"trans\":[%f,%f,%f],\"scale\":[%f]}", &qua[0],
                &qua[1], &qua[2], &qua[3], &trans[0], &trans[1], &trans[2], &scale);
       self->m_recentSceneParams.push_back({glm::translate(glm::mat4(1.0f), trans) * glm::mat4_cast(qua), scale});
     }

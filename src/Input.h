@@ -1,7 +1,7 @@
 #pragma once
 #include "Util.h"
 #include <array>
-#include "InputData.h"
+#include "inputData.h"
 
 // [tdbe] Note: [tdbe] prefix means I'm the author (/ of the comment).
 

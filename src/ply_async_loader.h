@@ -27,8 +27,7 @@
 #include <mutex>
 //
 #include "splat_set.h"
-
-enum GSMode;
+#include "gs_mode.h"
 //
 class PlyAsyncLoader
 {
